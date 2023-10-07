@@ -60,6 +60,12 @@ impl MigrationTrait for Migration {
           priority smallint     not null
       );
 
+      create table record_ns
+      (
+          id       uuid primary key references record(id),
+          target   varchar(255) not null,
+      );
+
       create table record_txt
       (
           id       uuid primary key references record(id),
@@ -82,6 +88,7 @@ impl MigrationTrait for Migration {
         DROP TABLE record_aaaa;
         DROP TABLE record_cname;
         DROP TABLE record_mx;
+        DROP TABLE record_ns;
         DROP TABLE record_txt;
       ",
       )
