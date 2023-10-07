@@ -9,9 +9,8 @@ pub struct Migration;
 impl MigrationTrait for Migration {
   async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
     let db = manager.get_connection();
-
-    // TODO: CAA, SRV
-
+    
+    //TODO: CAA, SRV
     db.execute_unprepared(
       "
       create table zone

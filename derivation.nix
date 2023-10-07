@@ -4,7 +4,7 @@ buildPackage {
   version = "0.1.0";
 
   src = ./.;
-
+  cargoBuildOptions = (x: x ++ [ "-p migration" ]);
   cargoSha256 = lib.fakeSha256;
 
   nativeBuildInputs = [ pkg-config ];

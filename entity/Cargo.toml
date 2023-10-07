@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 sea-orm = { version = "0.9" }
+serde = {version = "1", features = ["derive"], default-feautes = false}
+time = {version = "0.3", features = ["serde"], default-feautes = false}
+uuid = {version = "1.4", features = ["serde"], default-feautes = false}
