@@ -11,9 +11,11 @@ use tracing::info;
 use migration::{Migrator, MigratorTrait};
 
 use crate::args::ChefArgs;
-use crate::state::State;
+use crate::service::zone::ZoneService;
+use crate::state::ChefState;
 
 mod args;
+mod routes;
 mod service;
 mod state;
 
@@ -23,15 +25,16 @@ async fn main() -> anyhow::Result<()> {
 
   let args = ChefArgs::parse();
 
-  let db = Database::connect(args.database_url).await?;
-  Migrator::up(&db, None).await?;
+  let db = Arc::new(Database::connect(args.database_url).await?);
+  Migrator::up(&*db, None).await?;
 
   // TODO: create services
 
-  let state = State {};
+  let state = ChefState {
+    zone_service: ZoneService::from_db(db),
+  };
 
-  let router = Router::new().with_state(Arc::new(state));
-
+  let router = Router::new().with_state(state);
   let server = Server::bind(&args.listen_addr).serve(router.into_make_service());
 
   info!("Listening on http://{}...", args.listen_addr);

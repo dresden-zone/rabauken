@@ -8,10 +8,13 @@ sea-orm = { version = "0.12", default-features = false, features = ["runtime-tok
 tokio = { version = "1.32", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
 tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
-axum = { version = "0.6", default-features = false, features = ["tokio", "http1"] }
+axum = { version = "0.6", default-features = false, features = ["tokio", "http1", "json", "macros"] }
 clap = { version = "4.4", features = ["derive", "env"] }
 url = { version = "2.4", default-features = false }
 migration = { path = "../migration" }
 entity = { path = "../entity" }
 anyhow = "1.0"
 time = { version = "0.3", default-features = false}
+serde = { version = "1.0.188", features = ["derive"] }
+email_address = {version = "0.2", default-features = false}
+uuid = {version = "1.4", default-features = false, features = ["v4", "serde"] }
