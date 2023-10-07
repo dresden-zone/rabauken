@@ -1,13 +1,17 @@
-use crate::args::ChefArgs;
-use crate::state::State;
+use std::sync::Arc;
+
 use axum::Router;
 use axum::Server;
 use clap::Parser;
 use sea_orm::Database;
-use std::sync::Arc;
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::info;
+
+use migration::{Migrator, MigratorTrait};
+
+use crate::args::ChefArgs;
+use crate::state::State;
 
 mod args;
 mod state;
@@ -19,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
   let args = ChefArgs::parse();
 
   let db = Database::connect(args.database_url).await?;
+  Migrator::up(&db, None).await?;
 
   // TODO: create services
 

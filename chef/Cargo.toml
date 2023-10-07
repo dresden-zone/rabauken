@@ -11,5 +11,6 @@ tracing-subscriber = { version = "0.3", default-features = false, features = ["f
 axum = { version = "0.6", default-features = false, features = ["tokio", "http1"] }
 clap = { version = "4.4", features = ["derive", "env"] }
 url = { version = "2.4", default-features = false }
+migration = { path = "../migration" }
 entity = { path = "../entity" }
 anyhow = "1.0"

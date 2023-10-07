@@ -305,6 +305,7 @@ dependencies = [
  "axum",
  "clap",
  "entity",
+ "migration",
  "sea-orm",
  "tokio",
  "tracing",
