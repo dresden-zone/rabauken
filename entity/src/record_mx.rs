@@ -4,23 +4,23 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "zone")]
+#[sea_orm(table_name = "record_mx")]
 pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub id: Uuid,
-  pub created: TimeDateTimeWithTimeZone,
-  pub updated: TimeDateTimeWithTimeZone,
-  pub admin: String,
-  pub name: String,
-  pub refresh: i32,
-  pub retry: i32,
-  pub expire: i32,
-  pub minimum: i32,
+  pub target: String,
+  pub priority: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-  #[sea_orm(has_many = "super::record::Entity")]
+  #[sea_orm(
+    belongs_to = "super::record::Entity",
+    from = "Column::Id",
+    to = "super::record::Column::Id",
+    on_update = "NoAction",
+    on_delete = "NoAction"
+  )]
   Record,
 }
 

@@ -83,6 +83,7 @@
           rm -rf entity/src/*
           cp -r $BUILD_DIR/out/* ./entity/src/
           mv ./entity/src/mod.rs ./entity/src/lib.rs
+          chmod -R 644 ./entity/src/*
           ${pkgs.cargo}/bin/cargo fmt
         '';
 
