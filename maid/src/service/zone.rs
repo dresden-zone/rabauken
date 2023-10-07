@@ -2,12 +2,12 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use sea_orm::prelude::Uuid;
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use tracing::info;
-use trust_dns_server::proto::rr::{LowerName, Name, rdata, RData, Record, RecordType};
+use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordType};
 
-use entity::{record, record_a, record_aaaa, record_mx, record_txt};
+use entity::{record, record_a, record_aaaa, record_mx, record_ns, record_txt};
 
 pub(crate) struct ZoneService {
   db: Arc<DatabaseConnection>,
@@ -90,8 +90,44 @@ impl ZoneService {
           )
         })
         .collect(),
-      // RecordType::NS => record_ns::Entity::find()
-      //   .filter(record::Column::ZoneId.eq(zone_id).and(record::Column::Name.eq(name.to_string()))),
+      RecordType::NS => record_ns::Entity::find()
+        .find_also_related(record::Entity)
+        .filter(
+          record::Column::ZoneId
+            .eq(zone_id)
+            .and(record::Column::Name.eq(name.to_string())),
+        )
+        .all(self.db.as_ref())
+        .await?
+        .into_iter()
+        .map(|(a, record)| {
+          let model3 = record.unwrap();
+          Record::from_rdata(
+            Name::from_ascii(model3.name).unwrap(),
+            model3.ttl as u32,
+            RData::NS(rdata::NS(Name::from_ascii(a.target).unwrap())),
+          )
+        })
+        .collect(),
+      RecordType::CNAME => record_ns::Entity::find()
+        .find_also_related(record::Entity)
+        .filter(
+          record::Column::ZoneId
+            .eq(zone_id)
+            .and(record::Column::Name.eq(name.to_string())),
+        )
+        .all(self.db.as_ref())
+        .await?
+        .into_iter()
+        .map(|(a, record)| {
+          let model3 = record.unwrap();
+          Record::from_rdata(
+            Name::from_ascii(model3.name).unwrap(),
+            model3.ttl as u32,
+            RData::CNAME(rdata::CNAME(Name::from_ascii(a.target).unwrap())),
+          )
+        })
+        .collect(),
       RecordType::TXT => record_txt::Entity::find()
         .find_also_related(record::Entity)
         .filter(
