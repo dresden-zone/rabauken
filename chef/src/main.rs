@@ -15,6 +15,7 @@ use crate::state::State;
 
 mod args;
 mod state;
+mod service;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
