@@ -5,5 +5,6 @@ pub use super::record_a::Entity as RecordA;
 pub use super::record_aaaa::Entity as RecordAaaa;
 pub use super::record_cname::Entity as RecordCname;
 pub use super::record_mx::Entity as RecordMx;
+pub use super::record_ns::Entity as RecordNs;
 pub use super::record_txt::Entity as RecordTxt;
 pub use super::zone::Entity as Zone;

@@ -14,8 +14,8 @@ use crate::args::ChefArgs;
 use crate::state::State;
 
 mod args;
-mod state;
 mod service;
+mod state;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

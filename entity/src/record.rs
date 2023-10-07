@@ -25,6 +25,8 @@ pub enum Relation {
   RecordCname,
   #[sea_orm(has_many = "super::record_mx::Entity")]
   RecordMx,
+  #[sea_orm(has_many = "super::record_ns::Entity")]
+  RecordNs,
   #[sea_orm(has_many = "super::record_txt::Entity")]
   RecordTxt,
   #[sea_orm(
@@ -58,6 +60,12 @@ impl Related<super::record_cname::Entity> for Entity {
 impl Related<super::record_mx::Entity> for Entity {
   fn to() -> RelationDef {
     Relation::RecordMx.def()
+  }
+}
+
+impl Related<super::record_ns::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::RecordNs.def()
   }
 }
 

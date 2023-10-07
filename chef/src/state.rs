@@ -1,4 +1,1 @@
-pub(crate) struct State {
-
-
-}
+pub(crate) struct State {}

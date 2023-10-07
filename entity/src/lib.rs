@@ -7,5 +7,6 @@ pub mod record_a;
 pub mod record_aaaa;
 pub mod record_cname;
 pub mod record_mx;
+pub mod record_ns;
 pub mod record_txt;
 pub mod zone;

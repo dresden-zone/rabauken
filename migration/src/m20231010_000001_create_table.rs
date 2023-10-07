@@ -63,7 +63,7 @@ impl MigrationTrait for Migration {
       create table record_ns
       (
           id       uuid primary key references record(id),
-          target   varchar(255) not null,
+          target   varchar(255) not null
       );
 
       create table record_txt
