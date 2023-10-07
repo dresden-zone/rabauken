@@ -34,12 +34,12 @@ impl CreateZoneRequest {
 }
 
 pub(crate) async fn list_zones(
-    State(mut state): State<ChefState>,
+  State(mut state): State<ChefState>,
 ) -> Result<Json<Arc<Vec<zone::Model>>>, StatusCode> {
-    match state.zone_service.all().await {
-        Ok(value)  => Ok(Json(Arc::new(value))),
-        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR)
-    }
+  match state.zone_service.all().await {
+    Ok(value) => Ok(Json(Arc::new(value))),
+    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+  }
 }
 
 pub(crate) async fn create_zone(

@@ -5,11 +5,11 @@ pub mod zone;
 
 use crate::state::ChefState;
 
-use zone::create_zone;
 use crate::routes::zone::list_zones;
+use zone::create_zone;
 
 pub(crate) fn route() -> Router<ChefState> {
   Router::new()
-      .route("/v1/zone", get(list_zones))
-      .route("/v1/zone", post(create_zone))
+    .route("/v1/zone", get(list_zones))
+    .route("/v1/zone", post(create_zone))
 }
