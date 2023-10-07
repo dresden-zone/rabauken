@@ -1002,8 +1002,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "clap",
+ "entity",
+ "migration",
+ "sea-orm",
  "tokio",
+ "tracing",
+ "tracing-subscriber",
  "trust-dns-server",
+ "url",
 ]
 
 [[package]]

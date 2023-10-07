@@ -1,74 +1,88 @@
+use crate::args::MaidArgs;
+use crate::authority::CatalogAuthority;
+use crate::service::ZoneService;
+use migration::{Migrator, MigratorTrait};
+use sea_orm::Database;
 use std::str::FromStr;
-
-use async_trait::async_trait;
-use tokio::net::UdpSocket;
-use trust_dns_server::authority::{
-  AuthorityObject, Catalog, LookupError, LookupObject, LookupOptions, MessageRequest, UpdateResult,
-  ZoneType,
-};
-use trust_dns_server::proto::rr::{LowerName, RecordType};
-use trust_dns_server::server::RequestInfo;
+use std::sync::Arc;
+use std::time::Duration;
+use clap::Parser;
+use tokio::net::{TcpListener, UdpSocket};
+use tokio::select;
+use tokio::signal::ctrl_c;
+use tracing::info;
+use trust_dns_server::authority::{Catalog};
+use trust_dns_server::proto::rr::LowerName;
 use trust_dns_server::ServerFuture;
 
-struct Auth {}
-
-#[async_trait]
-impl AuthorityObject for Auth {
-  fn box_clone(&self) -> Box<dyn AuthorityObject> {
-    todo!()
-  }
-
-  fn zone_type(&self) -> ZoneType {
-    ZoneType::Primary
-  }
-
-  fn is_axfr_allowed(&self) -> bool {
-    todo!()
-  }
-
-  async fn update(&self, update: &MessageRequest) -> UpdateResult<bool> {
-    todo!()
-  }
-
-  fn origin(&self) -> &LowerName {
-    todo!()
-  }
-
-  async fn lookup(
-    &self,
-    name: &LowerName,
-    rtype: RecordType,
-    lookup_options: LookupOptions,
-  ) -> Result<Box<dyn LookupObject>, LookupError> {
-    todo!()
-  }
-
-  async fn search(
-    &self,
-    request_info: RequestInfo<'_>,
-    lookup_options: LookupOptions,
-  ) -> Result<Box<dyn LookupObject>, LookupError> {
-    todo!()
-  }
-
-  async fn get_nsec_records(
-    &self,
-    name: &LowerName,
-    lookup_options: LookupOptions,
-  ) -> Result<Box<dyn LookupObject>, LookupError> {
-    todo!()
-  }
-}
+mod args;
+mod authority;
+mod service;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+  tracing_subscriber::fmt::init();
+
+  let args = MaidArgs::parse();
+
+  let db = Arc::new(Database::connect(args.database_url).await?);
+  Migrator::up(db.as_ref(), None).await?;
+
+  let zone_service = Arc::new(ZoneService::new(db));
+
   let mut catalog = Catalog::new();
-  catalog.upsert(LowerName::from_str("dresden.zone.")?, Box::new(Auth {}));
+  catalog.upsert(
+    LowerName::from_str("dresden.zone.")?,
+    Box::new(CatalogAuthority::new(zone_service)),
+  );
 
   let mut server = ServerFuture::new(catalog);
-  server.register_socket(UdpSocket::bind("127.0.0.1:53").await?);
+  server.register_socket(UdpSocket::bind(args.listen_addr).await?);
+  server.register_listener(
+    TcpListener::bind(args.listen_addr).await?,
+    Duration::from_secs(30),
+  );
 
-  server.block_until_done().await?;
+  info!("Listening on udp://{}...", args.listen_addr);
+  info!("Listening on tcp://{}...", args.listen_addr);
+
+  select! {
+   result = server.block_until_done() => {
+     result?;
+     info!("Socket closed, quitting...");
+   },
+  result = shutdown_signal() => {
+     result?;
+     info!("Termination signal received, quitting...");
+   }
+  }
 
   Ok(())
+}
+
+async fn shutdown_signal() -> anyhow::Result<()> {
+  let ctrl_c = async { ctrl_c().await.expect("failed to install Ctrl+C handler") };
+
+  #[cfg(unix)]
+  {
+    let terminate = async {
+      tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .expect("failed to install signal handler")
+        .recv()
+        .await;
+    };
+
+    select! {
+      _ = ctrl_c => {},
+      _ = terminate => {},
+    }
+
+    Ok(())
+  }
+
+  #[cfg(not(unix))]
+  {
+    ctrl_c.await;
+    Ok(())
+  }
 }
