@@ -2,7 +2,10 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use tokio::net::UdpSocket;
-use trust_dns_server::authority::{AuthorityObject, Catalog, LookupError, LookupObject, LookupOptions, MessageRequest, UpdateResult, ZoneType};
+use trust_dns_server::authority::{
+  AuthorityObject, Catalog, LookupError, LookupObject, LookupOptions, MessageRequest, UpdateResult,
+  ZoneType,
+};
 use trust_dns_server::proto::rr::{LowerName, RecordType};
 use trust_dns_server::server::RequestInfo;
 use trust_dns_server::ServerFuture;
@@ -31,15 +34,28 @@ impl AuthorityObject for Auth {
     todo!()
   }
 
-  async fn lookup(&self, name: &LowerName, rtype: RecordType, lookup_options: LookupOptions) -> Result<Box<dyn LookupObject>, LookupError> {
+  async fn lookup(
+    &self,
+    name: &LowerName,
+    rtype: RecordType,
+    lookup_options: LookupOptions,
+  ) -> Result<Box<dyn LookupObject>, LookupError> {
     todo!()
   }
 
-  async fn search(&self, request_info: RequestInfo<'_>, lookup_options: LookupOptions) -> Result<Box<dyn LookupObject>, LookupError> {
+  async fn search(
+    &self,
+    request_info: RequestInfo<'_>,
+    lookup_options: LookupOptions,
+  ) -> Result<Box<dyn LookupObject>, LookupError> {
     todo!()
   }
 
-  async fn get_nsec_records(&self, name: &LowerName, lookup_options: LookupOptions) -> Result<Box<dyn LookupObject>, LookupError> {
+  async fn get_nsec_records(
+    &self,
+    name: &LowerName,
+    lookup_options: LookupOptions,
+  ) -> Result<Box<dyn LookupObject>, LookupError> {
     todo!()
   }
 }
@@ -56,4 +72,3 @@ async fn main() -> anyhow::Result<()> {
 
   Ok(())
 }
-
