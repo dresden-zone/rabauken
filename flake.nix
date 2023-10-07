@@ -66,7 +66,7 @@
               server.wait_for_unit("postgresql.service")
               #os.mkdir("/tmp/out")
               print(os.getcwd())
-              server.execute("${pkgs.sea-orm-cli}/bin/sea-orm-cli generate entity --database-url postgresql://${username}:${password}@localhost/${database} --date-time-create time --with-serde both --output-dir /tmp/out") 
+              server.execute("${pkgs.sea-orm-cli}/bin/sea-orm-cli generate entity --database-url postgresql://${username}:${password}@localhost/${database} --date-time-crate time --with-serde both --output-dir /tmp/out") 
               print(os.listdir("/tmp/out"))
               server.copy_from_vm("/tmp/out", "")
             '';
