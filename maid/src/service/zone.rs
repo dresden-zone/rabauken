@@ -76,8 +76,8 @@ impl ZoneService {
             Name::from_ascii(record.name).unwrap(),
             record.ttl as u32,
             RData::MX(rdata::MX::new(
-              a.priority as u16,
-              Name::from_ascii(a.target).unwrap(),
+              a.preference as u16,
+              Name::from_ascii(a.exchange).unwrap(),
             )),
           )
         })
