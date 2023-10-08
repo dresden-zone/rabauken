@@ -36,11 +36,11 @@ async fn main() -> anyhow::Result<()> {
   let mut catalog = Catalog::new();
   catalog.upsert(
     LowerName::from_str("dresden.zone.")?,
-    Box::new(CatalogAuthority::new(
+    Box::new(Arc::new(CatalogAuthority::new(
       zone_service,
       Uuid::from_str("123e4567-e89b-12d3-a456-426614174000")?,
       LowerName::from_str("dresden.zone.").unwrap(),
-    )),
+    ))),
   );
 
   let mut server = ServerFuture::new(catalog);
