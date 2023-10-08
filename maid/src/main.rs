@@ -3,6 +3,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::Parser;
+use migration::{Migrator, MigratorTrait};
+use sea_orm::prelude::Uuid;
 use sea_orm::Database;
 use tokio::net::{TcpListener, UdpSocket};
 use tokio::select;
@@ -11,8 +13,6 @@ use tracing::info;
 use trust_dns_server::authority::Catalog;
 use trust_dns_server::proto::rr::LowerName;
 use trust_dns_server::ServerFuture;
-
-use migration::{Migrator, MigratorTrait};
 
 use crate::args::MaidArgs;
 use crate::authority::CatalogAuthority;
@@ -36,7 +36,11 @@ async fn main() -> anyhow::Result<()> {
   let mut catalog = Catalog::new();
   catalog.upsert(
     LowerName::from_str("dresden.zone.")?,
-    Box::new(CatalogAuthority::new(zone_service)),
+    Box::new(CatalogAuthority::new(
+      zone_service,
+      Uuid::from_str("123e4567-e89b-12d3-a456-426614174000")?,
+      LowerName::from_str("dresden.zone.").unwrap(),
+    )),
   );
 
   let mut server = ServerFuture::new(catalog);

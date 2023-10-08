@@ -24,7 +24,7 @@ impl ZoneService {
     name: &LowerName,
     r#type: RecordType,
   ) -> anyhow::Result<Vec<Record>> {
-    info!(
+    println!(
       "Looking up on zone {} with name {} and type {}",
       zone_id, name, r#type
     );
