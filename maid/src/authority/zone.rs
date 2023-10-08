@@ -1,38 +1,27 @@
-use std::str::FromStr;
 use std::sync::Arc;
 
-use sea_orm::prelude::Uuid;
-use trust_dns_server::authority::{
-  AuthLookup, Authority, AuthorityObject, LookupError, LookupObject, LookupOptions, LookupRecords,
-  MessageRequest, UpdateResult, ZoneType,
-};
+use trust_dns_server::authority::{AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, MessageRequest, UpdateResult, ZoneType};
 use trust_dns_server::proto::rr::{LowerName, RecordSet, RecordType};
 use trust_dns_server::server::RequestInfo;
 
 use crate::service::ZoneService;
 
-pub(crate) struct CatalogAuthority {
+pub(crate) struct ZoneAuthority {
   zone_service: Arc<ZoneService>,
-  zone_id: Uuid,
-  origin: LowerName,
 }
 
-impl CatalogAuthority {
-  pub(crate) fn new(zone_service: Arc<ZoneService>, zone_id: Uuid, origin: LowerName) -> Self {
-    Self {
-      zone_service,
-      zone_id,
-      origin,
-    }
+impl ZoneAuthority {
+  pub(crate) fn new(zone_service: Arc<ZoneService>) -> Self {
+    Self { zone_service }
   }
 }
 
 #[async_trait::async_trait]
-impl Authority for CatalogAuthority {
+impl Authority for ZoneAuthority {
   type Lookup = AuthLookup;
 
   fn zone_type(&self) -> ZoneType {
-    todo!()
+    ZoneType::Primary
   }
 
   fn is_axfr_allowed(&self) -> bool {
@@ -61,18 +50,10 @@ impl Authority for CatalogAuthority {
     request: RequestInfo<'_>,
     lookup_options: LookupOptions,
   ) -> Result<Self::Lookup, LookupError> {
-    let x = request.query.name().to_string();
-    let y = self.origin.to_string();
-    let option = x.strip_suffix(&y).unwrap();
-    let option = option.strip_suffix(".").unwrap();
-
-    let y = b(&self.origin, request.query.name());
-
     let records = self
       .zone_service
       .lookup(
-        self.zone_id,
-        &LowerName::from_str(option).unwrap(),
+        request.query.name(),
         request.query.original().query_type(),
       )
       .await
@@ -104,16 +85,4 @@ impl Authority for CatalogAuthority {
   ) -> Result<Self::Lookup, LookupError> {
     todo!()
   }
-}
-
-fn b(zone: &LowerName, name: &LowerName) -> String {
-  let zone = zone.to_string();
-  let name = name.to_string();
-
-  name
-    .strip_suffix(&zone)
-    .unwrap()
-    .strip_suffix(".")
-    .unwrap()
-    .to_string()
 }

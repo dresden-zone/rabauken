@@ -2,12 +2,14 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use sea_orm::prelude::Uuid;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
-use tracing::info;
-use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordType};
+use sea_orm::{
+  DatabaseConnection, EntityTrait, QueryFilter,
+};
+use sea_orm::prelude::Expr;
+use sea_orm::sea_query::extension::postgres::PgExpr;
+use trust_dns_server::proto::rr::{LowerName, Name, rdata, RData, Record, RecordType};
 
-use entity::{record, record_a, record_aaaa, record_mx, record_ns, record_txt};
+use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 
 pub(crate) struct ZoneService {
   db: Arc<DatabaseConnection>,
@@ -20,69 +22,61 @@ impl ZoneService {
 
   pub(crate) async fn lookup(
     &self,
-    zone_id: Uuid,
     name: &LowerName,
     r#type: RecordType,
   ) -> anyhow::Result<Vec<Record>> {
-    println!(
-      "Looking up on zone {} with name {} and type {}",
-      zone_id, name, r#type
+    // println!(
+    //   "Looking up on zone {} with name {} and type {}",
+    //   zone_id, name, r#type
+    // );
+
+    let query = record::Entity::find().inner_join(zone::Entity).filter(
+      Expr::col((record::Entity, record::Column::Name))
+        .concat(Expr::val("."))
+        .concat(Expr::col((zone::Entity, zone::Column::Name)))
+        .concat(Expr::val("."))
+        .eq(name.to_string()),
     );
 
     let records = match r#type {
-      RecordType::A => record_a::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::A => query
+        .find_also_related(record_a::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model = record.unwrap();
+        .map(|(record, a)| {
           Record::from_rdata(
-            Name::from_ascii(model.name).unwrap(),
-            model.ttl as u32,
-            RData::A(rdata::A(Ipv4Addr::from_str(&a.address).unwrap())),
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
+            RData::A(rdata::A(Ipv4Addr::from_str(&a.unwrap().address).unwrap())),
           )
         })
         .collect(),
-      RecordType::AAAA => record_aaaa::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::AAAA => query
+        .find_also_related(record_aaaa::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model1 = record.unwrap();
+        .map(|(record, aaaa)| {
           Record::from_rdata(
-            Name::from_ascii(model1.name).unwrap(),
-            model1.ttl as u32,
-            RData::AAAA(rdata::AAAA(Ipv6Addr::from_str(&a.address).unwrap())),
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
+            RData::AAAA(rdata::AAAA(
+              Ipv6Addr::from_str(&aaaa.unwrap().address).unwrap(),
+            )),
           )
         })
         .collect(),
-      RecordType::MX => record_mx::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::MX => query
+        .find_also_related(record_mx::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model2 = record.unwrap();
+        .map(|(record, mx)| {
+          let a = mx.unwrap();
           Record::from_rdata(
-            Name::from_ascii(model2.name).unwrap(),
-            model2.ttl as u32,
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
             RData::MX(rdata::MX::new(
               a.priority as u16,
               Name::from_ascii(a.target).unwrap(),
@@ -90,60 +84,44 @@ impl ZoneService {
           )
         })
         .collect(),
-      RecordType::NS => record_ns::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::NS => query
+        .find_also_related(record_ns::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model3 = record.unwrap();
+        .map(|(record, ns)| {
           Record::from_rdata(
-            Name::from_ascii(model3.name).unwrap(),
-            model3.ttl as u32,
-            RData::NS(rdata::NS(Name::from_ascii(a.target).unwrap())),
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
+            RData::NS(rdata::NS(Name::from_ascii(ns.unwrap().target).unwrap())),
           )
         })
         .collect(),
-      RecordType::CNAME => record_ns::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::CNAME => query
+        .find_also_related(record_cname::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model3 = record.unwrap();
+        .map(|(record, cname)| {
           Record::from_rdata(
-            Name::from_ascii(model3.name).unwrap(),
-            model3.ttl as u32,
-            RData::CNAME(rdata::CNAME(Name::from_ascii(a.target).unwrap())),
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
+            RData::CNAME(rdata::CNAME(
+              Name::from_ascii(cname.unwrap().target).unwrap(),
+            )),
           )
         })
         .collect(),
-      RecordType::TXT => record_txt::Entity::find()
-        .find_also_related(record::Entity)
-        .filter(
-          record::Column::ZoneId
-            .eq(zone_id)
-            .and(record::Column::Name.eq(name.to_string())),
-        )
+      RecordType::TXT => query
+        .find_also_related(record_txt::Entity)
         .all(self.db.as_ref())
         .await?
         .into_iter()
-        .map(|(a, record)| {
-          let model3 = record.unwrap();
+        .map(|(record, txt)| {
           Record::from_rdata(
-            Name::from_ascii(model3.name).unwrap(),
-            model3.ttl as u32,
-            RData::TXT(rdata::TXT::new(vec![a.content])),
+            Name::from_ascii(record.name).unwrap(),
+            record.ttl as u32,
+            RData::TXT(rdata::TXT::new(vec![txt.unwrap().content])),
           )
         })
         .collect(),

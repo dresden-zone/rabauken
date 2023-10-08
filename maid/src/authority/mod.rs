@@ -1,3 +1,3 @@
-mod catalog;
+mod zone;
 
-pub(crate) use catalog::CatalogAuthority;
+pub(crate) use zone::ZoneAuthority;

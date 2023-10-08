@@ -12,8 +12,7 @@ impl MigrationTrait for Migration {
 
     db.execute_unprepared(
       "
-      create table zone
-      (
+      create table zone(
           id      uuid primary key,
           created timestamptz  not null,
           updated timestamptz  not null,
@@ -25,8 +24,7 @@ impl MigrationTrait for Migration {
           minimum integer      not null
       );
 
-      create table record
-      (
+      create table record(
           id      uuid primary key,
           created timestamptz  not null,
           updated timestamptz  not null,
@@ -35,45 +33,39 @@ impl MigrationTrait for Migration {
           ttl     integer      not null
       );
 
-      create table record_a
-      (
+      create table record_a(
           id      uuid primary key references record(id) unique,
           address varchar(15)  not null
       );
 
-      create table record_aaaa
-      (
+      create table record_aaaa(
           id      uuid primary key references record(id) unique,
           address varchar(41)  not null
       );
 
-      create table record_cname
-      (
+      create table record_cname(
           id      uuid primary key references record(id) unique,
           target  varchar(255) not null
       );
 
-      create table record_mx
-      (
-          id       uuid primary key references record(id) unique,
-          target   varchar(255) not null,
-          priority smallint     not null
+      create table record_mx(
+          id         uuid primary key references record(id) unique,
+          preference smallint     not null,
+          exchange   varchar(255) not null
       );
 
-      create table record_ns
-      (
+      create table record_ns(
           id       uuid primary key references record(id) unique,
           target   varchar(255) not null
       );
 
-      create table record_txt
-      (
+      create table record_txt(
           id       uuid primary key references record(id) unique,
           content  text         not null
       );
     ",
     )
-    .await?;
+      .await?;
 
     Ok(())
   }
