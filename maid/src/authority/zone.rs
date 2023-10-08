@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use trust_dns_server::authority::{AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, MessageRequest, UpdateResult, ZoneType};
+use trust_dns_server::authority::{
+  AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, MessageRequest, UpdateResult,
+  ZoneType,
+};
 use trust_dns_server::proto::rr::{LowerName, RecordSet, RecordType};
 use trust_dns_server::server::RequestInfo;
 
@@ -28,7 +31,7 @@ impl Authority for ZoneAuthority {
     todo!()
   }
 
-  async fn update(&self, update: &MessageRequest) -> UpdateResult<bool> {
+  async fn update(&self, _update: &MessageRequest) -> UpdateResult<bool> {
     todo!()
   }
 
@@ -38,9 +41,9 @@ impl Authority for ZoneAuthority {
 
   async fn lookup(
     &self,
-    name: &LowerName,
-    rtype: RecordType,
-    lookup_options: LookupOptions,
+    _name: &LowerName,
+    _rtype: RecordType,
+    _lookup_options: LookupOptions,
   ) -> Result<Self::Lookup, LookupError> {
     todo!()
   }
@@ -52,10 +55,7 @@ impl Authority for ZoneAuthority {
   ) -> Result<Self::Lookup, LookupError> {
     let records = self
       .zone_service
-      .lookup(
-        request.query.name(),
-        request.query.original().query_type(),
-      )
+      .lookup(request.query.name(), request.query.original().query_type())
       .await
       .unwrap();
 
@@ -80,8 +80,8 @@ impl Authority for ZoneAuthority {
 
   async fn get_nsec_records(
     &self,
-    name: &LowerName,
-    lookup_options: LookupOptions,
+    _name: &LowerName,
+    _lookup_options: LookupOptions,
   ) -> Result<Self::Lookup, LookupError> {
     todo!()
   }

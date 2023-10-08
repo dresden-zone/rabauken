@@ -1,12 +1,13 @@
+use std::sync::Arc;
+
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
-use entity::zone;
-use sea_orm::ActiveValue;
 use serde::Serialize;
-use std::sync::Arc;
 use time::OffsetDateTime;
 use uuid::Uuid;
+
+use entity::zone;
 
 use crate::service::zone::ZoneRequest;
 use crate::state::ChefState;

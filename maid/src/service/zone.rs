@@ -2,12 +2,10 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use std::sync::Arc;
 
-use sea_orm::{
-  DatabaseConnection, EntityTrait, QueryFilter,
-};
 use sea_orm::prelude::Expr;
 use sea_orm::sea_query::extension::postgres::PgExpr;
-use trust_dns_server::proto::rr::{LowerName, Name, rdata, RData, Record, RecordType};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
+use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordType};
 
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 
