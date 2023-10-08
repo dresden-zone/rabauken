@@ -21,7 +21,7 @@
   "refresh": 3000,
   "retry": 3000,
   "expire": 3000,
-  "minimum": 3000,
+  "minimum": 3000
 }
 ```
 
@@ -32,7 +32,7 @@
 }
 ```
 
-- **GET /v1/zone-uuid/{uuid}**
+- **GET /v1/zone/zone-uuid/{uuid}**
 **Response**
 {
   "admin": "admin@dresden.zone",
@@ -44,18 +44,18 @@
   "verified": true
 }
 
-- **DELETE /v1/zone-uuid/{uuid}**
-- **PUT /v1/zone-uuid/{uuid}**
+- **DELETE /v1/zone/zone-uuid/{uuid}**
+- **PUT /v1/zone/zone-uuid/{uuid}**
 
 ### Records
 
-- **POST /v1/zone/{uuid-uuid}/record** 
+- **POST /v1/zone/{zone-uuid}/record** 
 **Request**
 ```json
 {
   "type": "A",
   "name": "dns",  
-  "address": "172.0.0.1"
+  "address": "172.0.0.1",
   "ttl": 300
 }
 ```
@@ -72,17 +72,17 @@
 ```json
 [
   {
-    "id": "record-uuid"
+    "id": "record-uuid",
     "type": "A",
     "name": "dns",  
-    "address": "172.0.0.1"
+    "address": "172.0.0.1",
     "ttl": 300
   },
   {
-    "id": "record-uuid"
+    "id": "record-uuid",
     "type": "A",
     "name": "api",  
-    "address": "172.0.0.2"
+    "address": "172.0.0.2",
     "ttl": 600
   }
 ]
