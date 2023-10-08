@@ -37,38 +37,38 @@ impl MigrationTrait for Migration {
 
       create table record_a
       (
-          id      uuid primary key references record(id),
+          id      uuid primary key references record(id) unique,
           address varchar(15)  not null
       );
 
       create table record_aaaa
       (
-          id      uuid primary key references record(id),
+          id      uuid primary key references record(id) unique,
           address varchar(41)  not null
       );
 
       create table record_cname
       (
-          id      uuid primary key references record(id),
+          id      uuid primary key references record(id) unique,
           target  varchar(255) not null
       );
 
       create table record_mx
       (
-          id       uuid primary key references record(id),
+          id       uuid primary key references record(id) unique,
           target   varchar(255) not null,
           priority smallint     not null
       );
 
       create table record_ns
       (
-          id       uuid primary key references record(id),
+          id       uuid primary key references record(id) unique,
           target   varchar(255) not null
       );
 
       create table record_txt
       (
-          id       uuid primary key references record(id),
+          id       uuid primary key references record(id) unique,
           content  text         not null
       );
     ",
