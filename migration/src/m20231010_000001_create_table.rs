@@ -63,6 +63,10 @@ impl MigrationTrait for Migration {
           id       uuid primary key references record(id),
           content  text         not null
       );
+
+      -- TODO:
+      -- create index zone_name_index on zone(name);
+      -- create index record_name_index on record(name);
     ",
     )
     .await?;
