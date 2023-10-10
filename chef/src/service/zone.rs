@@ -1,29 +1,24 @@
-use email_address::EmailAddress;
-use entity::prelude::Zone;
-use entity::zone;
-use sea_orm::{
-  prelude::Uuid, ActiveModelTrait, ActiveValue, ActiveValue::Set, DatabaseConnection, DeleteResult,
-  EntityTrait, ModelTrait, UpdateResult,
-};
-use serde::Deserialize;
 use std::str::FromStr;
 use std::sync::Arc;
+
+use sea_orm::{
+  prelude::Uuid, ActiveModelTrait, ActiveValue, DatabaseConnection, DeleteResult, EntityTrait,
+  ModelTrait,
+};
+use serde::Deserialize;
 use time::OffsetDateTime;
+
+use entity::prelude::Zone;
+use entity::zone;
 
 #[derive(Deserialize)]
 pub(crate) struct ZoneRequest {
   name: String,
-  admin: String,
+  verified: bool,
   refresh: u32,
   retry: u32,
   expire: u32,
   minimum: u32,
-}
-
-impl ZoneRequest {
-  pub(crate) fn valid_email(&self) -> bool {
-    EmailAddress::from_str(&self.admin).is_ok()
-  }
 }
 
 #[derive(Clone)]
@@ -54,8 +49,8 @@ impl ZoneService {
       id: ActiveValue::Set(id),
       created: ActiveValue::Set(current_time),
       updated: ActiveValue::Set(current_time),
-      admin: ActiveValue::Set(zone.admin),
       name: ActiveValue::Set(zone.name),
+      verified: ActiveValue::Set(zone.verified),
       refresh: ActiveValue::Set(zone.refresh as i32),
       retry: ActiveValue::Set(zone.retry as i32),
       expire: ActiveValue::Set(zone.expire as i32),
@@ -79,7 +74,7 @@ impl ZoneService {
       id: ActiveValue::Set(id),
       created: ActiveValue::NotSet,
       updated: ActiveValue::Set(current_time),
-      admin: ActiveValue::Set(zone.admin),
+      verified: ActiveValue::Set(zone.verified),
       name: ActiveValue::Set(zone.name),
       refresh: ActiveValue::Set(zone.refresh as i32),
       retry: ActiveValue::Set(zone.retry as i32),

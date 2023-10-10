@@ -13,15 +13,15 @@ impl MigrationTrait for Migration {
     db.execute_unprepared(
       "
       create table zone(
-          id      uuid primary key,
-          created timestamptz  not null,
-          updated timestamptz  not null,
-          admin   varchar(255) not null,
-          name    varchar(255) not null,
-          refresh integer      not null,
-          retry   integer      not null,
-          expire  integer      not null,
-          minimum integer      not null
+          id       uuid primary key,
+          created  timestamptz  not null,
+          updated  timestamptz  not null,
+          name     varchar(255) not null,
+          verified boolean     not null,
+          refresh  integer      not null,
+          retry    integer      not null,
+          expire   integer      not null,
+          minimum  integer      not null
       );
 
       create table record(

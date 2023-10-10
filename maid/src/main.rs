@@ -4,16 +4,16 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::Parser;
-use sea_orm::Database;
 use sea_orm::prelude::Uuid;
+use sea_orm::Database;
 use tokio::net::{TcpListener, UdpSocket};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::info;
 use trust_dns_server::authority::{Catalog, ZoneType};
 use trust_dns_server::proto::rr::{LowerName, Name};
-use trust_dns_server::ServerFuture;
 use trust_dns_server::store::file::{FileAuthority, FileConfig};
+use trust_dns_server::ServerFuture;
 
 use migration::{Migrator, MigratorTrait};
 
@@ -40,7 +40,11 @@ async fn main() -> anyhow::Result<()> {
   let name = LowerName::from_str("dresden.zone.")?;
   catalog.upsert(
     name.clone(),
-    Box::new(Arc::new(ZoneAuthority::new(zone_service, Uuid::from_str("123e4567-e89b-12d3-a456-426614174000")?, name))),
+    Box::new(Arc::new(ZoneAuthority::new(
+      zone_service,
+      Uuid::from_str("123e4567-e89b-12d3-a456-426614174000")?,
+      name,
+    ))),
     // Box::new(Arc::new(FileAuthority::try_from_config(Name::from(name) ,ZoneType::Primary, false, None, &FileConfig {zone_file_path: "dresden.zone.db".to_string()}).unwrap())),
   );
 

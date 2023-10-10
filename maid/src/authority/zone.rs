@@ -3,10 +3,13 @@ use std::sync::Arc;
 
 use sea_orm::prelude::Uuid;
 use tokio::try_join;
-use trust_dns_server::authority::{AnyRecords, AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, LookupResult, MessageRequest, UpdateResult, ZoneType};
+use trust_dns_server::authority::{
+  AnyRecords, AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, LookupResult,
+  MessageRequest, UpdateResult, ZoneType,
+};
 use trust_dns_server::proto::op::ResponseCode;
-use trust_dns_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
 use trust_dns_server::proto::rr::domain::Label;
+use trust_dns_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
 use trust_dns_server::server::RequestInfo;
 
 use crate::service::ZoneService;
@@ -20,7 +23,12 @@ pub(crate) struct ZoneAuthority {
 
 impl ZoneAuthority {
   pub(crate) fn new(zone_service: Arc<ZoneService>, zone_id: Uuid, origin: LowerName) -> Self {
-    Self { zone_service, zone_id, labels: Name::from(origin.clone()).iter().len(), origin }
+    Self {
+      zone_service,
+      zone_id,
+      labels: Name::from(origin.clone()).iter().len(),
+      origin,
+    }
   }
 }
 
@@ -66,7 +74,9 @@ impl Authority for ZoneAuthority {
         name.write_ascii(&mut host).unwrap();
       }
 
-      if host.is_empty() { host.write_char('@').unwrap(); }
+      if host.is_empty() {
+        host.write_char('@').unwrap();
+      }
 
       host
     };
@@ -77,7 +87,13 @@ impl Authority for ZoneAuthority {
         RecordType::AXFR | RecordType::ANY => {
           let result = AnyRecords::new(
             lookup_options,
-            self.zone_service.lookup_any(self.zone_id).await.into_iter().map(Arc::new).collect(),
+            self
+              .zone_service
+              .lookup_any(self.zone_id)
+              .await
+              .into_iter()
+              .map(Arc::new)
+              .collect(),
             query_type,
             name.clone(),
           );
@@ -85,25 +101,44 @@ impl Authority for ZoneAuthority {
         }
         _ => {
           // perform the lookup
-          let answer = self.zone_service.lookup(self.zone_id, &Name::from(&self.origin), name, &host, query_type).await.unwrap();
+          let answer = self
+            .zone_service
+            .lookup(
+              self.zone_id,
+              &Name::from(&self.origin),
+              name,
+              &host,
+              query_type,
+            )
+            .await
+            .unwrap();
           println!("{:?}", answer);
 
-          let additional =match  answer
-            .as_ref()
-            .and_then(|a| maybe_next_name(a, query_type)) {
-            Some((search_name, search_type)) =>
+          let additional = match answer.as_ref().and_then(|a| maybe_next_name(a, query_type)) {
+            Some((search_name, search_type)) => {
               if !self.origin.zone_of(&search_name) {
-                 None
+                None
               } else {
-                self.zone_service.additional_search(self.zone_id, &Name::from(&self.origin), name, query_type, search_name, search_type, lookup_options).await
-              },
-              None => None,
-            };
+                self
+                  .zone_service
+                  .additional_search(
+                    self.zone_id,
+                    &Name::from(&self.origin),
+                    name,
+                    query_type,
+                    search_name,
+                    search_type,
+                    lookup_options,
+                  )
+                  .await
+              }
+            }
+            None => None,
+          };
 
-          let answer = answer
-            .map_or(Err(LookupError::from(ResponseCode::NXDomain)), |rr_set| {
-              Ok(LookupRecords::new(lookup_options, Arc::new(rr_set)))
-            });
+          let answer = answer.map_or(Err(LookupError::from(ResponseCode::NXDomain)), |rr_set| {
+            Ok(LookupRecords::new(lookup_options, Arc::new(rr_set)))
+          });
 
           let additionals = additional.map(|a| LookupRecords::many(lookup_options, a));
 
@@ -166,7 +201,11 @@ impl Authority for ZoneAuthority {
     }
   }
 
-  async fn get_nsec_records(&self, name: &LowerName, lookup_options: LookupOptions) -> Result<Self::Lookup, LookupError> {
+  async fn get_nsec_records(
+    &self,
+    name: &LowerName,
+    lookup_options: LookupOptions,
+  ) -> Result<Self::Lookup, LookupError> {
     todo!()
   }
 }

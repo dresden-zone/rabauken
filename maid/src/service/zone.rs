@@ -5,12 +5,12 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use sea_orm::prelude::{Expr, Uuid};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use trust_dns_server::authority::LookupOptions;
-use trust_dns_server::proto::rr::{LowerName, Name, rdata, RData, Record, RecordSet, RecordType};
 use trust_dns_server::proto::rr::domain::Label;
 use trust_dns_server::proto::rr::RecordType::SOA;
+use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
 
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 
@@ -39,19 +39,25 @@ impl ZoneService {
     if &name != original {
       Ok(None)
     } else {
-      Ok(Some(Record::from_rdata(name, 31, RData::SOA(rdata::SOA::new(
-        Name::from_ascii("ns.dns.dresden.zone.")?,
-        Name::from_ascii("dns.dresden.zone")?,
-        1,
-        zone.refresh,
-        zone.retry,
-        zone.expire,
-        zone.minimum as u32,
-      )))))
+      Ok(Some(Record::from_rdata(
+        name,
+        31,
+        RData::SOA(rdata::SOA::new(
+          Name::from_ascii("ns.dns.dresden.zone.")?,
+          Name::from_ascii("dns.dresden.zone")?,
+          1,
+          zone.refresh,
+          zone.retry,
+          zone.expire,
+          zone.minimum as u32,
+        )),
+      )))
     }
   }
 
-  pub(crate) async fn lookup_any(&self, zone_id: Uuid) -> Vec<RecordSet> { todo!() }
+  pub(crate) async fn lookup_any(&self, zone_id: Uuid) -> Vec<RecordSet> {
+    todo!()
+  }
 
   pub(crate) async fn lookup(
     &self,
@@ -75,8 +81,9 @@ impl ZoneService {
     }
 
     let query = record::Entity::find().inner_join(zone::Entity).filter(
-      Expr::col((zone::Entity, zone::Column::Id)).eq(Expr::val(zone_id))
-        .and(Expr::col((record::Entity, record::Column::Name)).eq(host))
+      Expr::col((zone::Entity, zone::Column::Id))
+        .eq(Expr::val(zone_id))
+        .and(Expr::col((record::Entity, record::Column::Name)).eq(host)),
     );
 
     let mut set = RecordSet::new(&name, r#type, 0);
@@ -91,11 +98,14 @@ impl ZoneService {
           .await?
           .into_iter()
           .for_each(|(record, a)| {
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::A(rdata::A(Ipv4Addr::from_str(&a.unwrap().address).unwrap())),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::A(rdata::A(Ipv4Addr::from_str(&a.unwrap().address).unwrap())),
+              ),
+              2,
+            );
           }),
         RecordType::AAAA => query
           .inner_join(record_aaaa::Entity)
@@ -104,13 +114,16 @@ impl ZoneService {
           .await?
           .into_iter()
           .for_each(|(record, aaaa)| {
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::AAAA(rdata::AAAA(
-                Ipv6Addr::from_str(&aaaa.unwrap().address).unwrap(),
-              )),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::AAAA(rdata::AAAA(
+                  Ipv6Addr::from_str(&aaaa.unwrap().address).unwrap(),
+                )),
+              ),
+              2,
+            );
           }),
         RecordType::MX => query
           .inner_join(record_mx::Entity)
@@ -120,14 +133,17 @@ impl ZoneService {
           .into_iter()
           .for_each(|(record, mx)| {
             let a = mx.unwrap();
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::MX(rdata::MX::new(
-                a.preference as u16,
-                Name::from_ascii(a.exchange).unwrap(),
-              )),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::MX(rdata::MX::new(
+                  a.preference as u16,
+                  Name::from_ascii(a.exchange).unwrap(),
+                )),
+              ),
+              2,
+            );
           }),
         RecordType::NS => query
           .inner_join(record_ns::Entity)
@@ -136,11 +152,14 @@ impl ZoneService {
           .await?
           .into_iter()
           .for_each(|(record, ns)| {
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::NS(rdata::NS(Name::from_ascii(ns.unwrap().target).unwrap())),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::NS(rdata::NS(Name::from_ascii(ns.unwrap().target).unwrap())),
+              ),
+              2,
+            );
           }),
         RecordType::CNAME => query
           .inner_join(record_cname::Entity)
@@ -149,13 +168,16 @@ impl ZoneService {
           .await?
           .into_iter()
           .for_each(|(record, cname)| {
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::CNAME(rdata::CNAME(
-                Name::from_ascii(cname.unwrap().target).unwrap(),
-              )),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::CNAME(rdata::CNAME(
+                  Name::from_ascii(cname.unwrap().target).unwrap(),
+                )),
+              ),
+              2,
+            );
           }),
         RecordType::TXT => query
           .inner_join(record_txt::Entity)
@@ -164,11 +186,14 @@ impl ZoneService {
           .await?
           .into_iter()
           .for_each(|(record, txt)| {
-            set.insert(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::TXT(rdata::TXT::new(vec![txt.unwrap().content])),
-            ), 2);
+            set.insert(
+              Record::from_rdata(
+                name.clone(),
+                record.ttl as u32,
+                RData::TXT(rdata::TXT::new(vec![txt.unwrap().content])),
+              ),
+              2,
+            );
           }),
         _ => todo!(),
       }
@@ -187,109 +212,114 @@ impl ZoneService {
           let target = cname.unwrap().target;
 
           let n = if target.ends_with('@') {
-            let n = Name::from_ascii(&target[..target.len()-1]).unwrap();
+            let n = Name::from_ascii(&target[..target.len() - 1]).unwrap();
             n.append_name(origin).unwrap()
           } else {
             Name::from_ascii(target).unwrap()
           };
 
-          set.insert(Record::from_rdata(
-            name.clone(),
-            record.ttl as u32,
-            RData::CNAME(rdata::CNAME(
-              n,
-            )),
-          ), 2);
+          set.insert(
+            Record::from_rdata(
+              name.clone(),
+              record.ttl as u32,
+              RData::CNAME(rdata::CNAME(n)),
+            ),
+            2,
+          );
         });
 
       Some(set)
-    } else { Some(set) })
+    } else {
+      Some(set)
+    })
   }
 
-  pub(crate) async fn  additional_search(
-      &self,
-      zone_id: Uuid,
-      origin: &Name,
-      original_name: &LowerName,
-      original_query_type: RecordType,
-      next_name: LowerName,
-      _search_type: RecordType,
-      lookup_options: LookupOptions,
-    ) -> Option<Vec<Arc<RecordSet>>> {
-      let mut additionals: Vec<Arc<RecordSet>> = vec![];
+  pub(crate) async fn additional_search(
+    &self,
+    zone_id: Uuid,
+    origin: &Name,
+    original_name: &LowerName,
+    original_query_type: RecordType,
+    next_name: LowerName,
+    _search_type: RecordType,
+    lookup_options: LookupOptions,
+  ) -> Option<Vec<Arc<RecordSet>>> {
+    let mut additionals: Vec<Arc<RecordSet>> = vec![];
 
-      // if it's a CNAME or other forwarding record, we'll be adding additional records based on the query_type
-      let mut query_types_arr = [original_query_type; 2];
-      let query_types: &[RecordType] = match original_query_type {
-        RecordType::ANAME | RecordType::NS | RecordType::MX | RecordType::SRV => {
-          query_types_arr = [RecordType::A, RecordType::AAAA];
-          &query_types_arr[..]
-        }
-        _ => &query_types_arr[..1],
-      };
+    // if it's a CNAME or other forwarding record, we'll be adding additional records based on the query_type
+    let mut query_types_arr = [original_query_type; 2];
+    let query_types: &[RecordType] = match original_query_type {
+      RecordType::ANAME | RecordType::NS | RecordType::MX | RecordType::SRV => {
+        query_types_arr = [RecordType::A, RecordType::AAAA];
+        &query_types_arr[..]
+      }
+      _ => &query_types_arr[..1],
+    };
 
-      for query_type in query_types {
-        // loop and collect any additional records to send
+    for query_type in query_types {
+      // loop and collect any additional records to send
 
-        // Track the names we've looked up for this query type.
-        let mut names = HashSet::new();
+      // Track the names we've looked up for this query type.
+      let mut names = HashSet::new();
 
-        // If we're just going to repeat the same query then bail out.
-        if query_type == &original_query_type {
-          names.insert(original_name.clone());
-        }
-
-        let mut next_name = Some(next_name.clone());
-        while let Some(search) = next_name.take() {
-          // If we've already looked up this name then bail out.
-          if names.contains(&Name::from(search.clone())) {
-            break;
-          }
-
-          let host = {
-            let mut host = String::new();
-
-            let name = Name::from(search.clone());
-            let name = name.into_iter().rev().skip(origin.iter().len());
-            let mut first = true;
-            for label in name {
-              if first {
-                first = false;
-              } else {
-                host.write_char('.').unwrap();
-              }
-              let mut name = Label::from_raw_bytes(label).unwrap();
-              name.write_ascii(&mut host).unwrap();
-            }
-
-            if host.is_empty() { host.write_char('@').unwrap(); }
-
-            host
-          };
-
-
-          let additional = self.lookup(zone_id, origin, &search, &host, *query_type).await.unwrap();
-          names.insert(search);
-
-
-          if let Some(additional) = additional {
-            let x = Arc::new(additional);
-            // assuming no crazy long chains...
-            if !additionals.contains(&x) {
-              additionals.push(x.clone());
-            }
-
-            next_name =
-              maybe_next_name(&x.clone(), *query_type).map(|(name, _search_type)| name);
-          }
-        }
+      // If we're just going to repeat the same query then bail out.
+      if query_type == &original_query_type {
+        names.insert(original_name.clone());
       }
 
-      if !additionals.is_empty() {
-        Some(additionals)
-      } else {
-        None
+      let mut next_name = Some(next_name.clone());
+      while let Some(search) = next_name.take() {
+        // If we've already looked up this name then bail out.
+        if names.contains(&Name::from(search.clone())) {
+          break;
+        }
+
+        let host = {
+          let mut host = String::new();
+
+          let name = Name::from(search.clone());
+          let name = name.into_iter().rev().skip(origin.iter().len());
+          let mut first = true;
+          for label in name {
+            if first {
+              first = false;
+            } else {
+              host.write_char('.').unwrap();
+            }
+            let mut name = Label::from_raw_bytes(label).unwrap();
+            name.write_ascii(&mut host).unwrap();
+          }
+
+          if host.is_empty() {
+            host.write_char('@').unwrap();
+          }
+
+          host
+        };
+
+        let additional = self
+          .lookup(zone_id, origin, &search, &host, *query_type)
+          .await
+          .unwrap();
+        names.insert(search);
+
+        if let Some(additional) = additional {
+          let x = Arc::new(additional);
+          // assuming no crazy long chains...
+          if !additionals.contains(&x) {
+            additionals.push(x.clone());
+          }
+
+          next_name = maybe_next_name(&x.clone(), *query_type).map(|(name, _search_type)| name);
+        }
       }
+    }
+
+    if !additionals.is_empty() {
+      Some(additionals)
+    } else {
+      None
+    }
   }
 }
 
