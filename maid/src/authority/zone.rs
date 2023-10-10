@@ -87,21 +87,18 @@ impl Authority for ZoneAuthority {
           // perform the lookup
           let answer = self.zone_service.lookup(self.zone_id, &Name::from(&self.origin), name, &host, query_type).await.unwrap();
           println!("{:?}", answer);
-          let additional = None;
-          // let additional = answer
-          //   .as_ref()
-          //   .and_then(|a| maybe_next_name(a, query_type))
-          //   .and_then(|(search_name, search_type)| {
-          //     inner
-          //       .additional_search(
-          //         name,
-          //         query_type,
-          //         search_name,
-          //         search_type,
-          //         lookup_options,
-          //       )
-          //       .map(|adds| (adds, search_type))
-          //   });
+
+          let additional =match  answer
+            .as_ref()
+            .and_then(|a| maybe_next_name(a, query_type)) {
+            Some((search_name, search_type)) =>
+              if !self.origin.zone_of(&search_name) {
+                 None
+              } else {
+                self.zone_service.additional_search(self.zone_id, &Name::from(&self.origin), name, query_type, search_name, search_type, lookup_options).await
+              },
+              None => None,
+            };
 
           let answer = answer
             .map_or(Err(LookupError::from(ResponseCode::NXDomain)), |rr_set| {

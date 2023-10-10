@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+use std::fmt::Write;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -5,7 +7,9 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use sea_orm::prelude::{Expr, Uuid};
+use trust_dns_server::authority::LookupOptions;
 use trust_dns_server::proto::rr::{LowerName, Name, rdata, RData, Record, RecordSet, RecordType};
+use trust_dns_server::proto::rr::domain::Label;
 use trust_dns_server::proto::rr::RecordType::SOA;
 
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
@@ -200,5 +204,133 @@ impl ZoneService {
 
       Some(set)
     } else { Some(set) })
+  }
+
+  pub(crate) async fn  additional_search(
+      &self,
+      zone_id: Uuid,
+      origin: &Name,
+      original_name: &LowerName,
+      original_query_type: RecordType,
+      next_name: LowerName,
+      _search_type: RecordType,
+      lookup_options: LookupOptions,
+    ) -> Option<Vec<Arc<RecordSet>>> {
+      let mut additionals: Vec<Arc<RecordSet>> = vec![];
+
+      // if it's a CNAME or other forwarding record, we'll be adding additional records based on the query_type
+      let mut query_types_arr = [original_query_type; 2];
+      let query_types: &[RecordType] = match original_query_type {
+        RecordType::ANAME | RecordType::NS | RecordType::MX | RecordType::SRV => {
+          query_types_arr = [RecordType::A, RecordType::AAAA];
+          &query_types_arr[..]
+        }
+        _ => &query_types_arr[..1],
+      };
+
+      for query_type in query_types {
+        // loop and collect any additional records to send
+
+        // Track the names we've looked up for this query type.
+        let mut names = HashSet::new();
+
+        // If we're just going to repeat the same query then bail out.
+        if query_type == &original_query_type {
+          names.insert(original_name.clone());
+        }
+
+        let mut next_name = Some(next_name.clone());
+        while let Some(search) = next_name.take() {
+          // If we've already looked up this name then bail out.
+          if names.contains(&Name::from(search.clone())) {
+            break;
+          }
+
+          let host = {
+            let mut host = String::new();
+
+            let name = Name::from(search.clone());
+            let name = name.into_iter().rev().skip(origin.iter().len());
+            let mut first = true;
+            for label in name {
+              if first {
+                first = false;
+              } else {
+                host.write_char('.').unwrap();
+              }
+              let mut name = Label::from_raw_bytes(label).unwrap();
+              name.write_ascii(&mut host).unwrap();
+            }
+
+            if host.is_empty() { host.write_char('@').unwrap(); }
+
+            host
+          };
+
+
+          let additional = self.lookup(zone_id, origin, &search, &host, *query_type).await.unwrap();
+          names.insert(search);
+
+
+          if let Some(additional) = additional {
+            let x = Arc::new(additional);
+            // assuming no crazy long chains...
+            if !additionals.contains(&x) {
+              additionals.push(x.clone());
+            }
+
+            next_name =
+              maybe_next_name(&x.clone(), *query_type).map(|(name, _search_type)| name);
+          }
+        }
+      }
+
+      if !additionals.is_empty() {
+        Some(additionals)
+      } else {
+        None
+      }
+  }
+}
+
+/// Gets the next search name, and returns the RecordType that it originated from
+fn maybe_next_name(
+  record_set: &RecordSet,
+  query_type: RecordType,
+) -> Option<(LowerName, RecordType)> {
+  match (record_set.record_type(), query_type) {
+    (t @ RecordType::NS, RecordType::NS) => record_set
+      .records_without_rrsigs()
+      .next()
+      .and_then(Record::data)
+      .and_then(RData::as_ns)
+      .map(|ns| LowerName::from(&ns.0))
+      .map(|name| (name, t)),
+    // CNAME will continue to additional processing for any query type
+    (t @ RecordType::CNAME, _) => record_set
+      .records_without_rrsigs()
+      .next()
+      .and_then(Record::data)
+      .and_then(RData::as_cname)
+      .map(|cname| LowerName::from(&cname.0))
+      .map(|name| (name, t)),
+    (t @ RecordType::MX, RecordType::MX) => record_set
+      .records_without_rrsigs()
+      .next()
+      .and_then(Record::data)
+      .and_then(RData::as_mx)
+      .map(|mx| mx.exchange().clone())
+      .map(LowerName::from)
+      .map(|name| (name, t)),
+    (t @ RecordType::SRV, RecordType::SRV) => record_set
+      .records_without_rrsigs()
+      .next()
+      .and_then(Record::data)
+      .and_then(RData::as_srv)
+      .map(|srv| srv.target().clone())
+      .map(LowerName::from)
+      .map(|name| (name, t)),
+    // other additional collectors can be added here can be added here
+    _ => None,
   }
 }
