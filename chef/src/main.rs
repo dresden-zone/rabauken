@@ -11,6 +11,7 @@ use tracing::info;
 use migration::{Migrator, MigratorTrait};
 
 use crate::args::ChefArgs;
+use crate::routes::routes;
 use crate::service::zone::ZoneService;
 use crate::state::ChefState;
 
@@ -34,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     zone_service: ZoneService::from_db(db),
   };
 
-  let router = Router::new().with_state(state);
+  let router = routes().with_state(state);
   let server = Server::bind(&args.listen_addr).serve(router.into_make_service());
 
   info!("Listening on http://{}...", args.listen_addr);

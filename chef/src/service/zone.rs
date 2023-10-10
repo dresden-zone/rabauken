@@ -15,10 +15,6 @@ use entity::zone;
 pub(crate) struct ZoneRequest {
   name: String,
   verified: bool,
-  refresh: u32,
-  retry: u32,
-  expire: u32,
-  minimum: u32,
 }
 
 #[derive(Clone)]
@@ -51,10 +47,6 @@ impl ZoneService {
       updated: ActiveValue::Set(current_time),
       name: ActiveValue::Set(zone.name),
       verified: ActiveValue::Set(zone.verified),
-      refresh: ActiveValue::Set(zone.refresh as i32),
-      retry: ActiveValue::Set(zone.retry as i32),
-      expire: ActiveValue::Set(zone.expire as i32),
-      minimum: ActiveValue::Set(zone.minimum as i32),
     };
     Ok(database_zone.insert(&*self.db).await?)
   }
@@ -76,10 +68,6 @@ impl ZoneService {
       updated: ActiveValue::Set(current_time),
       verified: ActiveValue::Set(zone.verified),
       name: ActiveValue::Set(zone.name),
-      refresh: ActiveValue::Set(zone.refresh as i32),
-      retry: ActiveValue::Set(zone.retry as i32),
-      expire: ActiveValue::Set(zone.expire as i32),
-      minimum: ActiveValue::Set(zone.minimum as i32),
     };
     Ok(database_zone.update(&*self.db).await?)
   }

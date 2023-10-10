@@ -18,10 +18,6 @@ impl MigrationTrait for Migration {
           updated  timestamptz  not null,
           name     varchar(255) not null,
           verified boolean     not null,
-          refresh  integer      not null,
-          retry    integer      not null,
-          expire   integer      not null,
-          minimum  integer      not null
       );
 
       create table record(

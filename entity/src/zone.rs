@@ -12,10 +12,6 @@ pub struct Model {
   pub updated: TimeDateTimeWithTimeZone,
   pub name: String,
   pub verified: bool,
-  pub refresh: i32,
-  pub retry: i32,
-  pub expire: i32,
-  pub minimum: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

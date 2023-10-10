@@ -1,14 +1,12 @@
-use axum::routing::{delete, get, post, put};
 use axum::Router;
+use axum::routing::{delete, get, post, put};
 
-pub mod zone;
-
+use crate::routes::zone::{create_zone, delete_zone, get_zone, list_zones, modify_zone};
 use crate::state::ChefState;
 
-use crate::routes::zone::{delete_zone, get_zone, list_zones, modify_zone};
-use zone::create_zone;
+mod zone;
 
-pub(crate) fn route() -> Router<ChefState> {
+pub(super) fn routes() -> Router<ChefState> {
   Router::new()
     .route("/v1/zone", get(list_zones))
     .route("/v1/zone", post(create_zone))
