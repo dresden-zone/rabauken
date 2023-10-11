@@ -24,7 +24,7 @@ impl ToModel<Zone, zone::ActiveModel> for ZoneRequest {
     let current_time = OffsetDateTime::now_utc();
     Box::new(zone::ActiveModel {
       id: ActiveValue::Set(id),
-      created: ActiveValue::Set(current_time),
+      created: ActiveValue::Unchanged(current_time),
       updated: ActiveValue::Set(current_time),
       verified: ActiveValue::Set(self.verified.clone()),
       name: ActiveValue::Set(self.name.clone()),
