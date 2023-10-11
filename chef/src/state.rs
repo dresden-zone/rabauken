@@ -1,6 +1,6 @@
-use crate::service::zone::ZoneService;
+use crate::service::generic_database::GenericDatabaseService;
 
 #[derive(Clone)]
 pub(crate) struct ChefState {
-  pub zone_service: ZoneService,
+  pub database: GenericDatabaseService,
 }
