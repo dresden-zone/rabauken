@@ -13,15 +13,11 @@
 ### Zone
 
 - **POST /v1/zone**
+
 **Request**
 ```json
 {
-  "admin": "admin@dresden.zone",
-  "name": "dresden.zone",
-  "refresh": 3000,
-  "retry": 3000,
-  "expire": 3000,
-  "minimum": 3000
+  "name": "dresden.zone"
 }
 ```
 
@@ -35,12 +31,7 @@
 - **GET /v1/zone/zone-uuid/{uuid}**
 **Response**
 {
-  "admin": "admin@dresden.zone",
   "name": "dresden.zone",
-  "refresh": 3000,
-  "retry": 3000,
-  "expire": 3000,
-  "minimum": 3000,
   "verified": true
 }
 
