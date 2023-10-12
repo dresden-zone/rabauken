@@ -1,4 +1,3 @@
-use std::backtrace::Backtrace;
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
@@ -13,9 +12,7 @@ use time::macros::datetime;
 use time::OffsetDateTime;
 use trust_dns_server::authority::LookupOptions;
 use trust_dns_server::proto::rr::domain::Label;
-use trust_dns_server::proto::rr::{
-  rdata, LowerName, Name, RData, Record, RecordData, RecordSet, RecordType,
-};
+use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
 
 use entity::EntityError;
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
@@ -137,7 +134,7 @@ impl ZoneService {
         |model| {
           let n = if model.target.ends_with('@') {
             let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
-            n.append_name(&origin)?
+            n.append_name(origin)?
           } else {
             Name::from_ascii(model.target)?
           };
@@ -210,8 +207,8 @@ impl ZoneService {
           zone_id,
           &name,
           record_type,
-          &host,
-          |(record, model)| {
+          host,
+          |model| {
             let n = if model.target.ends_with('@') {
               let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
               n.append_name(origin)?
@@ -235,8 +232,8 @@ impl ZoneService {
         zone_id,
         &name,
         RecordType::CNAME,
-        &host,
-        |(record, model)| {
+        host,
+        |model| {
           let n = if model.target.ends_with('@') {
             let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
             n.append_name(origin)?
@@ -400,7 +397,7 @@ where
   M: TryInto<RData, Error = EntityError>,
   record::Entity: Related<E>,
 {
-  query_records_raw(db, zone_id, name, record_type, host, |(record, model)| {
+  query_records_raw(db, zone_id, name, record_type, host, |model| {
     Ok(model.try_into()?)
   })
   .await
@@ -412,7 +409,7 @@ async fn query_records_raw<E, M>(
   name: &Name,
   record_type: RecordType,
   host: &str,
-  to_record: impl FnOnce((record::Model, E::Model)) -> anyhow::Result<RData> + Copy,
+  to_record: impl FnOnce(E::Model) -> anyhow::Result<RData> + Copy,
 ) -> anyhow::Result<RecordSet>
 where
   E: EntityTrait<Model = M>,
@@ -452,7 +449,7 @@ where
     let model = model.unwrap();
 
     set.insert(
-      Record::from_rdata(name.clone(), record.ttl as u32, to_record((record, model))?),
+      Record::from_rdata(name.clone(), record.ttl as u32, to_record(model)?),
       0,
     );
   }
@@ -473,18 +470,14 @@ where
   record::Entity: Related<E>,
 {
   fn call(zone_id: Uuid) -> Select<record::Entity> {
-    let query = record::Entity::find().inner_join(zone::Entity).filter(
+    record::Entity::find().inner_join(zone::Entity).filter(
       Expr::col((zone::Entity, zone::Column::Id))
         .eq(Expr::val(zone_id))
         .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
-    );
-
-    query
+    )
   }
 
-  let query = call(zone_id);
-
-  let records = query
+  let records = call(zone_id)
     .inner_join(E::default())
     .select_also(E::default())
     .all(db)

@@ -1,7 +1,7 @@
 use entity::prelude::Record;
 use entity::record;
 use sea_orm::entity::EntityTrait;
-use sea_orm::{ActiveModelTrait, DatabaseConnection};
+use sea_orm::DatabaseConnection;
 use sea_orm::Related;
 use std::sync::Arc;
 use uuid::Uuid;
