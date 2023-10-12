@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::{debug_handler, Json};
+use axum::Json;
+use serde::Serialize;
+use uuid::Uuid;
+
 use entity::prelude::Zone;
 use entity::zone;
-use serde::Serialize;
-use time::OffsetDateTime;
-use uuid::Uuid;
 
 use crate::service::model::ZoneRequest;
 use crate::state::ChefState;
@@ -30,11 +30,10 @@ pub(crate) async fn create_zone(
   State(mut state): State<ChefState>,
   Json(payload): Json<ZoneRequest>,
 ) -> Result<Json<Arc<IdResponse>>, StatusCode> {
-  let current_time = OffsetDateTime::now_utc();
   let id = Uuid::new_v4();
   match state
     .database
-    .create::<Zone, zone::ActiveModel>(id, Box::new(payload))
+    .create::<Zone, zone::ActiveModel>(id, payload)
     .await
   {
     Ok(_) => Ok(Json(Arc::new(IdResponse { id }))),
@@ -49,7 +48,7 @@ pub(crate) async fn modify_zone(
 ) -> StatusCode {
   match state
     .database
-    .update::<Zone, zone::ActiveModel>(zone_id, Box::new(payload))
+    .update::<Zone, zone::ActiveModel>(zone_id, payload)
     .await
   {
     Ok(_) => StatusCode::OK,
@@ -61,11 +60,7 @@ pub(crate) async fn delete_zone(
   State(mut state): State<ChefState>,
   Path(zone_id): Path<Uuid>,
 ) -> StatusCode {
-  match state
-    .database
-    .delete::<Zone, zone::ActiveModel>(zone_id)
-    .await
-  {
+  match state.database.delete::<Zone>(zone_id).await {
     Ok(_) => StatusCode::OK,
     Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
   }

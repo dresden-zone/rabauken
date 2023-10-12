@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use axum::Router;
 use axum::Server;
 use clap::Parser;
 use sea_orm::Database;

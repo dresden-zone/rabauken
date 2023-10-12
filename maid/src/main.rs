@@ -1,4 +1,3 @@
-use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -10,9 +9,8 @@ use tokio::net::{TcpListener, UdpSocket};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::info;
-use trust_dns_server::authority::{Catalog, ZoneType};
-use trust_dns_server::proto::rr::{LowerName, Name};
-use trust_dns_server::store::file::{FileAuthority, FileConfig};
+use trust_dns_server::authority::Catalog;
+use trust_dns_server::proto::rr::LowerName;
 use trust_dns_server::ServerFuture;
 
 use migration::{Migrator, MigratorTrait};

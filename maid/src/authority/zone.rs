@@ -70,7 +70,7 @@ impl Authority for ZoneAuthority {
         } else {
           host.write_char('.').unwrap();
         }
-        let mut name = Label::from_raw_bytes(label).unwrap();
+        let name = Label::from_raw_bytes(label).unwrap();
         name.write_ascii(&mut host).unwrap();
       }
 

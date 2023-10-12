@@ -26,16 +26,16 @@ impl GenericDatabaseService {
   pub(crate) async fn create<A: EntityTrait, B: ActiveModelTrait<Entity = A>>(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: Box<dyn ToModel<A, B>>,
+    data: impl ToModel<A, B>,
   ) -> anyhow::Result<<<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType> {
     Ok(
-      A::insert((*data.new_with_uuid(id)))
+      A::insert(data.new_with_uuid(id))
         .exec(&*self.db)
         .await?
         .last_insert_id,
     )
   }
-  pub(crate) async fn delete<A: EntityTrait, B: ActiveModelTrait<Entity = A>>(
+  pub(crate) async fn delete<A: EntityTrait>(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
   ) -> anyhow::Result<u64> {
@@ -48,11 +48,11 @@ impl GenericDatabaseService {
   >(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: Box<dyn ToModel<A, B>>,
+    data: impl ToModel<A, B>,
   ) -> anyhow::Result<A::Model>
   where
     <A as EntityTrait>::Model: IntoActiveModel<B>,
   {
-    Ok((*data.new_with_uuid(id)).update(&*self.db).await?)
+    Ok(data.new_with_uuid(id).update(self.db.as_ref()).await?)
   }
 }

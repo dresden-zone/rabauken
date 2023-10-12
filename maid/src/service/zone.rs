@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
 use trust_dns_server::authority::LookupOptions;
 use trust_dns_server::proto::rr::domain::Label;
 use trust_dns_server::proto::rr::RecordType::SOA;
@@ -46,10 +46,10 @@ impl ZoneService {
           Name::from_ascii("ns.dns.dresden.zone.")?,
           Name::from_ascii("dns.dresden.zone")?,
           1,
-          zone.refresh,
-          zone.retry,
-          zone.expire,
-          zone.minimum as u32,
+          10,
+          10,
+          10,
+          10,
         )),
       )))
     }
@@ -286,7 +286,7 @@ impl ZoneService {
             } else {
               host.write_char('.').unwrap();
             }
-            let mut name = Label::from_raw_bytes(label).unwrap();
+            let name = Label::from_raw_bytes(label).unwrap();
             name.write_ascii(&mut host).unwrap();
           }
 
