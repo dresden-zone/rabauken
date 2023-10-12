@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
     name.clone(),
     Box::new(Arc::new(ZoneAuthority::new(
       zone_service,
-      Uuid::from_str("123e4567-e89b-12d3-a456-426614174000")?,
+      Uuid::from_str("2067530c-c9b0-4105-8f59-692593a1095d")?,
       name,
     ))),
     // Box::new(Arc::new(FileAuthority::try_from_config(Name::from(name) ,ZoneType::Primary, false, None, &FileConfig {zone_file_path: "dresden.zone.db".to_string()}).unwrap())),

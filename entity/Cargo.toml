@@ -9,4 +9,6 @@ edition = "2021"
 serde = { version = "1", default-features = false, features = ["derive"] }
 time = { version = "0.3", default-features = false, features = ["serde"] }
 uuid = { version = "1.4", default-features = false, features = ["serde"] }
+trust-dns-proto = { version = "0.23", default-features = false, optional = true }
 sea-orm = { version = "0.12", default-features = false }
+thiserror = "1.0"

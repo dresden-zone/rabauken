@@ -1,18 +1,21 @@
 use std::collections::HashSet;
 use std::fmt::Write;
-use std::net::{Ipv4Addr, Ipv6Addr};
-use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
+use sea_orm::{
+  DatabaseConnection, EntityTrait, QueryFilter, Related, Select,
+};
 use sea_orm::prelude::{Expr, Uuid};
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter};
 use trust_dns_server::authority::LookupOptions;
+use trust_dns_server::proto::rr::{
+  LowerName, Name, rdata, RData, Record, RecordData, RecordSet, RecordType,
+};
 use trust_dns_server::proto::rr::domain::Label;
 use trust_dns_server::proto::rr::RecordType::SOA;
-use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
 
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
+use entity::EntityError;
 
 pub(crate) struct ZoneService {
   db: Arc<DatabaseConnection>,
@@ -80,155 +83,72 @@ impl ZoneService {
       };
     }
 
-    let query = record::Entity::find().inner_join(zone::Entity).filter(
-      Expr::col((zone::Entity, zone::Column::Id))
-        .eq(Expr::val(zone_id))
-        .and(Expr::col((record::Entity, record::Column::Name)).eq(host)),
-    );
-
-    let mut set = RecordSet::new(&name, r#type, 0);
-
-    {
-      let query = query.clone();
-      match r#type {
-        RecordType::A => query
-          .inner_join(record_a::Entity)
-          .select_also(record_a::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, a)| {
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::A(rdata::A(Ipv4Addr::from_str(&a.unwrap().address).unwrap())),
-              ),
-              2,
-            );
-          }),
-        RecordType::AAAA => query
-          .inner_join(record_aaaa::Entity)
-          .select_also(record_aaaa::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, aaaa)| {
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::AAAA(rdata::AAAA(
-                  Ipv6Addr::from_str(&aaaa.unwrap().address).unwrap(),
-                )),
-              ),
-              2,
-            );
-          }),
-        RecordType::MX => query
-          .inner_join(record_mx::Entity)
-          .select_also(record_mx::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, mx)| {
-            let a = mx.unwrap();
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::MX(rdata::MX::new(
-                  a.preference as u16,
-                  Name::from_ascii(a.exchange).unwrap(),
-                )),
-              ),
-              2,
-            );
-          }),
-        RecordType::NS => query
-          .inner_join(record_ns::Entity)
-          .select_also(record_ns::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, ns)| {
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::NS(rdata::NS(Name::from_ascii(ns.unwrap().target).unwrap())),
-              ),
-              2,
-            );
-          }),
-        RecordType::CNAME => query
-          .inner_join(record_cname::Entity)
-          .select_also(record_cname::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, cname)| {
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::CNAME(rdata::CNAME(
-                  Name::from_ascii(cname.unwrap().target).unwrap(),
-                )),
-              ),
-              2,
-            );
-          }),
-        RecordType::TXT => query
-          .inner_join(record_txt::Entity)
-          .select_also(record_txt::Entity)
-          .all(self.db.as_ref())
-          .await?
-          .into_iter()
-          .for_each(|(record, txt)| {
-            set.insert(
-              Record::from_rdata(
-                name.clone(),
-                record.ttl as u32,
-                RData::TXT(rdata::TXT::new(vec![txt.unwrap().content])),
-              ),
-              2,
-            );
-          }),
-        _ => todo!(),
+    let set = match r#type {
+      record_type @ RecordType::A => {
+        query_records::<record_a::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
       }
-    }
-
-    Ok(if set.is_empty() {
-      let mut set = RecordSet::new(&name, RecordType::CNAME, 0);
-
-      query
-        .inner_join(record_cname::Entity)
-        .select_also(record_cname::Entity)
-        .all(self.db.as_ref())
-        .await?
-        .into_iter()
-        .for_each(|(record, cname)| {
-          let target = cname.unwrap().target;
-
-          let n = if target.ends_with('@') {
-            let n = Name::from_ascii(&target[..target.len() - 1]).unwrap();
-            n.append_name(origin).unwrap()
-          } else {
-            Name::from_ascii(target).unwrap()
-          };
-
-          set.insert(
-            Record::from_rdata(
+      record_type @ RecordType::AAAA => {
+        query_records::<record_aaaa::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
+      }
+      record_type @ RecordType::MX => {
+        query_records::<record_mx::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
+      }
+      record_type @ RecordType::NS => {
+        query_records::<record_ns::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
+      }
+      record_type @ RecordType::CNAME => {
+        query_records_raw::<record_cname::Entity, _>(
+          &self.db,
+          zone_id,
+          &name,
+          RecordType::CNAME,
+          &host,
+          |(record, model)| {
+            let n = if model.target.ends_with('@') {
+              let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
+              n.append_name(origin)?
+            } else {
+              Name::from_ascii(model.target)?
+            };
+            Ok(Record::from_rdata(
               name.clone(),
               record.ttl as u32,
               RData::CNAME(rdata::CNAME(n)),
-            ),
-            2,
-          );
-        });
+            ))
+          },
+        )
+          .await?
+      }
+      record_type @ RecordType::TXT => {
+        query_records::<record_txt::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
+      }
+      _ => todo!(),
+    };
 
-      Some(set)
+    Ok(if set.is_empty() {
+      let records = query_records_raw::<record_cname::Entity, _>(
+        &self.db,
+        zone_id,
+        &name,
+        RecordType::CNAME,
+        &host,
+        |(record, model)| {
+          let n = if model.target.ends_with('@') {
+            let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
+            n.append_name(origin)?
+          } else {
+            Name::from_ascii(model.target)?
+          };
+          Ok(Record::from_rdata(
+            name.clone(),
+            record.ttl as u32,
+            RData::CNAME(rdata::CNAME(n)),
+          ))
+        },
+      )
+        .await?;
+
+      Some(records)
     } else {
       Some(set)
     })
@@ -363,4 +283,77 @@ fn maybe_next_name(
     // other additional collectors can be added here can be added here
     _ => None,
   }
+}
+
+async fn query_records<E, M>(
+  db: &DatabaseConnection,
+  zone_id: Uuid,
+  name: &Name,
+  record_type: RecordType,
+  host: &str,
+) -> anyhow::Result<RecordSet>
+  where
+    E: EntityTrait<Model=M>,
+    M: TryInto<RData, Error=EntityError>,
+    record::Entity: Related<E>,
+{
+  query_records_raw(db, zone_id, name, record_type, host, |(record, model)| {
+    Ok(Record::from_rdata(
+      name.clone(),
+      record.ttl as u32,
+      model.try_into()?,
+    ))
+  })
+    .await
+}
+
+async fn query_records_raw<E, M>(
+  db: &DatabaseConnection,
+  zone_id: Uuid,
+  name: &Name,
+  record_type: RecordType,
+  host: &str,
+  to_record: impl FnOnce((record::Model, E::Model)) -> anyhow::Result<Record<RData>> + Copy,
+) -> anyhow::Result<RecordSet>
+  where
+    E: EntityTrait<Model=M>,
+    M: TryInto<RData, Error=EntityError>,
+    record::Entity: Related<E>,
+{
+  fn call(
+    zone_id: Uuid,
+    name: &Name,
+    record_type: RecordType,
+    host: &str,
+  ) -> (RecordSet, Select<record::Entity>) {
+    let set = RecordSet::new(name, record_type, 0);
+
+    let query = record::Entity::find()
+      .inner_join::<zone::Entity>(zone::Entity)
+      .filter(
+        Expr::col((zone::Entity, zone::Column::Id))
+          .eq(Expr::val(zone_id))
+          .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true)))
+          .and(Expr::col((record::Entity, record::Column::Name)).eq(host)),
+      );
+
+    (set, query)
+  }
+
+  let (mut set, query) = call(zone_id, name, record_type, host);
+
+  let records = query
+    .inner_join(E::default())
+    .select_also(E::default())
+    .all(db)
+    .await?;
+
+  for (record, model) in records {
+    // we are using an inner join, so this can never be none
+    let model = model.unwrap();
+
+    set.insert(to_record((record, model))?, 1);
+  }
+
+  Ok(set)
 }

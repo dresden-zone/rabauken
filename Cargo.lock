@@ -533,7 +533,9 @@ version = "0.1.0"
 dependencies = [
  "sea-orm",
  "serde",
+ "thiserror",
  "time",
+ "trust-dns-proto",
  "uuid",
 ]
 

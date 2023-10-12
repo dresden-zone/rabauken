@@ -112,7 +112,6 @@ impl Authority for ZoneAuthority {
             )
             .await
             .unwrap();
-          println!("{:?}", answer);
 
           let additional = match answer.as_ref().and_then(|a| maybe_next_name(a, query_type)) {
             Some((search_name, search_type)) => {

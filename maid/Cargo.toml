@@ -9,9 +9,9 @@ tokio = { version = "1.32", default-features = false, features = ["macros", "rt-
 tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
 trust-dns-server = { version = "0.23", default-features = false }
+entity = { path = "../entity", features = ["trust-dns-proto"] }
 clap = { version = "4.4", features = ["derive", "env"] }
 url = { version = "2.4", default-features = false }
 migration = { path = "../migration" }
-entity = { path = "../entity" }
 async-trait = "0.1"
 anyhow = "1.0"
