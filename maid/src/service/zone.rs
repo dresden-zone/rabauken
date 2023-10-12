@@ -1,4 +1,6 @@
-use std::collections::HashSet;
+use std::backtrace::Backtrace;
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Write;
 use std::sync::Arc;
 
@@ -33,6 +35,7 @@ impl ZoneService {
   async fn records_serial(&self, zone_id: Uuid) -> anyhow::Result<Option<OffsetDateTime>> {
     Ok(
       record::Entity::find()
+        .inner_join(zone::Entity)
         .filter(
           record::Column::ZoneId
             .eq(zone_id)
@@ -46,7 +49,11 @@ impl ZoneService {
     )
   }
 
-  pub(crate) async fn soa(&self, zone_id: Uuid, original: &Name) -> anyhow::Result<RecordSet> {
+  pub(crate) async fn soa(
+    &self,
+    zone_id: Uuid,
+    original: Option<&Name>,
+  ) -> anyhow::Result<RecordSet> {
     let zone = zone::Entity::find_by_id(zone_id)
       .filter(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true)))
       .one(self.db.as_ref())
@@ -68,32 +75,111 @@ impl ZoneService {
 
     let mut set = RecordSet::new(&name, RecordType::SOA, 0);
 
-    if &name == original {
-      set.insert(
-        Record::from_rdata(
-          name,
-          zone.ttl as u32,
-          RData::SOA(rdata::SOA::new(
-            Name::from_ascii("ns.dns.dresden.zone.")?,
-            Name::from_ascii("dns.dresden.zone")?,
-            serial,
-            zone.refresh,
-            zone.retry,
-            zone.expire,
-            zone.minimum as u32,
-          )),
-        ),
-        0,
-      );
+    if let Some(original) = original {
+      if &name != original {
+        return Ok(set);
+      }
     }
+
+    set.insert(
+      Record::from_rdata(
+        name,
+        zone.ttl as u32,
+        RData::SOA(rdata::SOA::new(
+          Name::from_ascii("ns.dns.dresden.zone.")?,
+          Name::from_ascii("dns.dresden.zone")?,
+          serial,
+          zone.refresh,
+          zone.retry,
+          zone.expire,
+          zone.minimum as u32,
+        )),
+      ),
+      0,
+    );
 
     Ok(set)
   }
 
-  pub(crate) async fn lookup_any(&self, zone_id: Uuid) -> Vec<RecordSet> {
-    todo!()
-  }
+  pub(crate) async fn lookup_any(&self, zone_id: Uuid) -> anyhow::Result<Vec<RecordSet>> {
+    let mut records = Vec::with_capacity(7);
 
+    let soa = self.soa(zone_id, None).await?;
+    let origin = soa.name();
+    // records.push(soa);
+
+    records.append(
+      &mut query_all_records_raw::<record_a::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::A,
+        |model| Ok(model.try_into()?),
+      )
+      .await?,
+    );
+    records.append(
+      &mut query_all_records_raw::<record_aaaa::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::AAAA,
+        |model| Ok(model.try_into()?),
+      )
+      .await?,
+    );
+    records.append(
+      &mut query_all_records_raw::<record_cname::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::CNAME,
+        |model| {
+          let n = if model.target.ends_with('@') {
+            let n = Name::from_ascii(&model.target[..model.target.len() - 1])?;
+            n.append_name(&origin)?
+          } else {
+            Name::from_ascii(model.target)?
+          };
+          Ok(RData::CNAME(rdata::CNAME(n)))
+        },
+      )
+      .await?,
+    );
+
+    records.append(
+      &mut query_all_records_raw::<record_mx::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::MX,
+        |model| Ok(model.try_into()?),
+      )
+      .await?,
+    );
+    records.append(
+      &mut query_all_records_raw::<record_ns::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::NS,
+        |model| Ok(model.try_into()?),
+      )
+      .await?,
+    );
+    records.append(
+      &mut query_all_records_raw::<record_txt::Entity, _>(
+        &self.db,
+        zone_id,
+        origin,
+        RecordType::TXT,
+        |model| Ok(model.try_into()?),
+      )
+      .await?,
+    );
+
+    Ok(records)
+  }
   pub(crate) async fn lookup(
     &self,
     zone_id: Uuid,
@@ -103,10 +189,9 @@ impl ZoneService {
     record_type: RecordType,
   ) -> anyhow::Result<Option<RecordSet>> {
     let name = original.into();
-    let set = RecordSet::new(&name, record_type, 0);
 
     let set = match record_type {
-      RecordType::SOA => self.soa(zone_id, &name).await?,
+      RecordType::SOA => self.soa(zone_id, Some(&name)).await?,
       record_type @ RecordType::A => {
         query_records::<record_a::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
       }
@@ -124,7 +209,7 @@ impl ZoneService {
           &self.db,
           zone_id,
           &name,
-          RecordType::CNAME,
+          record_type,
           &host,
           |(record, model)| {
             let n = if model.target.ends_with('@') {
@@ -133,11 +218,7 @@ impl ZoneService {
             } else {
               Name::from_ascii(model.target)?
             };
-            Ok(Record::from_rdata(
-              name.clone(),
-              record.ttl as u32,
-              RData::CNAME(rdata::CNAME(n)),
-            ))
+            Ok(RData::CNAME(rdata::CNAME(n)))
           },
         )
         .await?
@@ -162,11 +243,7 @@ impl ZoneService {
           } else {
             Name::from_ascii(model.target)?
           };
-          Ok(Record::from_rdata(
-            name.clone(),
-            record.ttl as u32,
-            RData::CNAME(rdata::CNAME(n)),
-          ))
+          Ok(RData::CNAME(rdata::CNAME(n)))
         },
       )
       .await?;
@@ -324,11 +401,7 @@ where
   record::Entity: Related<E>,
 {
   query_records_raw(db, zone_id, name, record_type, host, |(record, model)| {
-    Ok(Record::from_rdata(
-      name.clone(),
-      record.ttl as u32,
-      model.try_into()?,
-    ))
+    Ok(model.try_into()?)
   })
   .await
 }
@@ -339,7 +412,7 @@ async fn query_records_raw<E, M>(
   name: &Name,
   record_type: RecordType,
   host: &str,
-  to_record: impl FnOnce((record::Model, E::Model)) -> anyhow::Result<Record<RData>> + Copy,
+  to_record: impl FnOnce((record::Model, E::Model)) -> anyhow::Result<RData> + Copy,
 ) -> anyhow::Result<RecordSet>
 where
   E: EntityTrait<Model = M>,
@@ -378,8 +451,70 @@ where
     // we are using an inner join, so this can never be none
     let model = model.unwrap();
 
-    set.insert(to_record((record, model))?, 1);
+    set.insert(
+      Record::from_rdata(name.clone(), record.ttl as u32, to_record((record, model))?),
+      0,
+    );
   }
 
   Ok(set)
+}
+
+async fn query_all_records_raw<E, M>(
+  db: &DatabaseConnection,
+  zone_id: Uuid,
+  origin: &Name,
+  record_type: RecordType,
+  to_record: impl FnOnce(E::Model) -> anyhow::Result<RData> + Copy,
+) -> anyhow::Result<Vec<RecordSet>>
+where
+  E: EntityTrait<Model = M>,
+  M: TryInto<RData, Error = EntityError>,
+  record::Entity: Related<E>,
+{
+  fn call(zone_id: Uuid) -> Select<record::Entity> {
+    let query = record::Entity::find().inner_join(zone::Entity).filter(
+      Expr::col((zone::Entity, zone::Column::Id))
+        .eq(Expr::val(zone_id))
+        .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
+    );
+
+    query
+  }
+
+  let query = call(zone_id);
+
+  let records = query
+    .inner_join(E::default())
+    .select_also(E::default())
+    .all(db)
+    .await?;
+
+  let mut set = HashMap::new();
+
+  for (record, model) in records {
+    // we are using an inner join, so this can never be none
+    let model = model.unwrap();
+
+    let name = if record.name == "@" {
+      origin.clone()
+    } else {
+      Name::from_ascii(record.name)?.append_domain(origin)?
+    };
+
+    let record = Record::from_rdata(name.clone(), record.ttl as u32, to_record(model)?);
+
+    match set.entry(name.clone()) {
+      Entry::Vacant(vac) => {
+        let mut set = RecordSet::new(&name, record_type, 0);
+        set.insert(record, 0);
+        vac.insert(set);
+      }
+      Entry::Occupied(mut occ) => {
+        occ.get_mut().insert(record, 0);
+      }
+    };
+  }
+
+  Ok(set.into_values().collect())
 }

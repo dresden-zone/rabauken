@@ -91,6 +91,7 @@ impl Authority for ZoneAuthority {
               .zone_service
               .lookup_any(self.zone_id)
               .await
+              .unwrap()
               .into_iter()
               .map(Arc::new)
               .collect(),
