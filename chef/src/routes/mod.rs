@@ -4,6 +4,7 @@ use axum::Router;
 use crate::routes::zone::{create_zone, delete_zone, get_zone, list_zones, modify_zone};
 use crate::state::ChefState;
 
+mod record;
 mod zone;
 
 pub(super) fn routes() -> Router<ChefState> {

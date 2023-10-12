@@ -322,6 +322,7 @@ dependencies = [
  "entity",
  "migration",
  "sea-orm",
+ "sea-query",
  "serde",
  "time",
  "tokio",

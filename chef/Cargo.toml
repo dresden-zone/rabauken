@@ -17,3 +17,4 @@ anyhow = "1.0"
 time = { version = "0.3", default-features = false}
 serde = { version = "1.0.188", features = ["derive"] }
 uuid = {version = "1.4", default-features = false, features = ["v4", "serde"] }
+sea-query = { version = "0.30.2", default-features = false}
