@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
-use sea_orm::entity::EntityTrait;
-use sea_orm::DatabaseConnection;
-use sea_orm::QuerySelect;
-use sea_orm::{JoinType, RelationTrait};
-
 use entity::prelude::Record;
 use entity::record;
+use sea_orm::entity::EntityTrait;
+use sea_orm::{ActiveModelTrait, DatabaseConnection};
+use sea_orm::Related;
+use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -18,10 +16,18 @@ impl GenericRecordService {
     GenericRecordService { db }
   }
 
-  pub(crate) async fn all<A: EntityTrait>(&mut self) -> anyhow::Result<Vec<record::Model>> {
+  pub(crate) async fn all<A: EntityTrait>(
+    &mut self,
+    id: Uuid,
+  ) -> anyhow::Result<Vec<(record::Model, Option<<A as EntityTrait>::Model>)>>
+  where
+    entity::prelude::Record: Related<A>,
+  {
     Ok(
-      Record::find()
-        .join(JoinType::InnerJoin, record::Relation::RecordA.def())
+      Record::find_by_id(id)
+        .inner_join(A::default())
+        //.join(JoinType::InnerJoin, relation.def())
+        .select_also(A::default())
         .all(&*self.db)
         .await?,
     )

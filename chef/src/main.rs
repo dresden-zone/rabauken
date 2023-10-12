@@ -12,6 +12,7 @@ use migration::{Migrator, MigratorTrait};
 use crate::args::ChefArgs;
 use crate::routes::routes;
 use crate::service::generic_database::GenericDatabaseService;
+use crate::service::generic_record_service::GenericRecordService;
 use crate::state::ChefState;
 
 mod args;
@@ -31,7 +32,8 @@ async fn main() -> anyhow::Result<()> {
   // TODO: create services
 
   let state = ChefState {
-    database: GenericDatabaseService::from_db(db),
+    database: GenericDatabaseService::from_db(db.clone()),
+    record_service: GenericRecordService::from_db(db.clone()),
   };
 
   let router = routes().with_state(state);
