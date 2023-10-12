@@ -12,7 +12,7 @@ pub struct Model {
   pub updated: TimeDateTimeWithTimeZone,
   pub name: String,
   pub zone_id: Uuid,
-  pub ttl: i32,
+  pub ttl: i64,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

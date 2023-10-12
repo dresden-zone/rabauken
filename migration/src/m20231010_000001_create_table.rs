@@ -17,7 +17,12 @@ impl MigrationTrait for Migration {
           created  timestamptz  not null,
           updated  timestamptz  not null,
           name     varchar(255) not null,
-          verified boolean      not null
+          verified boolean      not null,
+          ttl      bigint       not null,
+          refresh  integer      not null,
+          retry    integer      not null,
+          expire   integer      not null,
+          minimum  bigint       not null
       );
 
       create table record(
@@ -26,7 +31,7 @@ impl MigrationTrait for Migration {
           updated timestamptz  not null,
           name    varchar(255) not null,
           zone_id uuid         not null references zone (id),
-          ttl     integer      not null
+          ttl     bigint       not null
       );
 
       create table record_a(

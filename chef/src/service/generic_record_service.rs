@@ -1,12 +1,12 @@
-use crate::service::model::ToModel;
+use std::sync::Arc;
+
+use sea_orm::entity::EntityTrait;
+use sea_orm::DatabaseConnection;
+use sea_orm::QuerySelect;
+use sea_orm::{JoinType, RelationTrait};
+
 use entity::prelude::Record;
 use entity::record;
-use sea_orm::entity::EntityTrait;
-use sea_orm::QuerySelect;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, DbBackend, IntoActiveModel, PrimaryKeyTrait};
-use sea_orm::{JoinType, RelationTrait};
-use sea_query::Expr;
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {

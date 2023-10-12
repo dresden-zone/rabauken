@@ -4,16 +4,22 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, Related, Select};
+use sea_orm::{
+  ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Related, Select,
+};
+use time::macros::datetime;
+use time::OffsetDateTime;
 use trust_dns_server::authority::LookupOptions;
 use trust_dns_server::proto::rr::domain::Label;
-use trust_dns_server::proto::rr::RecordType::SOA;
 use trust_dns_server::proto::rr::{
   rdata, LowerName, Name, RData, Record, RecordData, RecordSet, RecordType,
 };
 
 use entity::EntityError;
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
+
+// Thu Oct 12 2023 00:00:00 GMT+0000
+const EPOCH: OffsetDateTime = datetime!(2023-10-12 00:00:00 UTC);
 
 pub(crate) struct ZoneService {
   db: Arc<DatabaseConnection>,
@@ -24,8 +30,25 @@ impl ZoneService {
     Self { db }
   }
 
-  pub(crate) async fn soa(&self, zone_id: Uuid, original: &Name) -> anyhow::Result<Option<Record>> {
+  async fn records_serial(&self, zone_id: Uuid) -> anyhow::Result<Option<OffsetDateTime>> {
+    Ok(
+      record::Entity::find()
+        .filter(
+          record::Column::ZoneId
+            .eq(zone_id)
+            .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
+        )
+        .select_only()
+        .expr(record::Column::Updated.max())
+        .into_tuple()
+        .one(self.db.as_ref())
+        .await?,
+    )
+  }
+
+  pub(crate) async fn soa(&self, zone_id: Uuid, original: &Name) -> anyhow::Result<RecordSet> {
     let zone = zone::Entity::find_by_id(zone_id)
+      .filter(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true)))
       .one(self.db.as_ref())
       .await?;
 
@@ -34,26 +57,37 @@ impl ZoneService {
       None => return Err(anyhow!("zone by id not found")),
     };
 
+    let serial = match self.records_serial(zone_id).await? {
+      Some(serial) => serial.max(zone.updated),
+      None => zone.updated,
+    };
+    let serial = (serial - EPOCH).whole_seconds() as u32;
+
     let mut name = Name::from_ascii(zone.name)?;
     name.set_fqdn(true);
 
-    if &name != original {
-      Ok(None)
-    } else {
-      Ok(Some(Record::from_rdata(
-        name,
-        31,
-        RData::SOA(rdata::SOA::new(
-          Name::from_ascii("ns.dns.dresden.zone.")?,
-          Name::from_ascii("dns.dresden.zone")?,
-          1,
-          10,
-          10,
-          10,
-          10,
-        )),
-      )))
+    let mut set = RecordSet::new(&name, RecordType::SOA, 0);
+
+    if &name == original {
+      set.insert(
+        Record::from_rdata(
+          name,
+          zone.ttl as u32,
+          RData::SOA(rdata::SOA::new(
+            Name::from_ascii("ns.dns.dresden.zone.")?,
+            Name::from_ascii("dns.dresden.zone")?,
+            serial,
+            zone.refresh,
+            zone.retry,
+            zone.expire,
+            zone.minimum as u32,
+          )),
+        ),
+        0,
+      );
     }
+
+    Ok(set)
   }
 
   pub(crate) async fn lookup_any(&self, zone_id: Uuid) -> Vec<RecordSet> {
@@ -66,22 +100,13 @@ impl ZoneService {
     origin: &Name,
     original: &LowerName,
     host: &str,
-    r#type: RecordType,
+    record_type: RecordType,
   ) -> anyhow::Result<Option<RecordSet>> {
     let name = original.into();
-    let mut set = RecordSet::new(&name, r#type, 0);
+    let set = RecordSet::new(&name, record_type, 0);
 
-    if r#type == SOA {
-      return match self.soa(zone_id, &name).await? {
-        None => Ok(None),
-        Some(record) => {
-          set.insert(record, 1);
-          Ok(Some(set))
-        }
-      };
-    }
-
-    let set = match r#type {
+    let set = match record_type {
+      RecordType::SOA => self.soa(zone_id, &name).await?,
       record_type @ RecordType::A => {
         query_records::<record_a::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
       }
@@ -145,8 +170,11 @@ impl ZoneService {
         },
       )
       .await?;
-
-      Some(records)
+      if records.is_empty() {
+        None
+      } else {
+        Some(records)
+      }
     } else {
       Some(set)
     })

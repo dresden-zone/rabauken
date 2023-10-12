@@ -1,3 +1,4 @@
+#[cfg(feature = "trust-dns-proto")]
 pub use error::EntityError;
 pub use models::*;
 
