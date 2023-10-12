@@ -3,19 +3,17 @@ use std::fmt::Write;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use sea_orm::{
-  DatabaseConnection, EntityTrait, QueryFilter, Related, Select,
-};
 use sea_orm::prelude::{Expr, Uuid};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, Related, Select};
 use trust_dns_server::authority::LookupOptions;
-use trust_dns_server::proto::rr::{
-  LowerName, Name, rdata, RData, Record, RecordData, RecordSet, RecordType,
-};
 use trust_dns_server::proto::rr::domain::Label;
 use trust_dns_server::proto::rr::RecordType::SOA;
+use trust_dns_server::proto::rr::{
+  rdata, LowerName, Name, RData, Record, RecordData, RecordSet, RecordType,
+};
 
-use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 use entity::EntityError;
+use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 
 pub(crate) struct ZoneService {
   db: Arc<DatabaseConnection>,
@@ -117,7 +115,7 @@ impl ZoneService {
             ))
           },
         )
-          .await?
+        .await?
       }
       record_type @ RecordType::TXT => {
         query_records::<record_txt::Entity, _>(&self.db, zone_id, &name, record_type, host).await?
@@ -146,7 +144,7 @@ impl ZoneService {
           ))
         },
       )
-        .await?;
+      .await?;
 
       Some(records)
     } else {
@@ -292,10 +290,10 @@ async fn query_records<E, M>(
   record_type: RecordType,
   host: &str,
 ) -> anyhow::Result<RecordSet>
-  where
-    E: EntityTrait<Model=M>,
-    M: TryInto<RData, Error=EntityError>,
-    record::Entity: Related<E>,
+where
+  E: EntityTrait<Model = M>,
+  M: TryInto<RData, Error = EntityError>,
+  record::Entity: Related<E>,
 {
   query_records_raw(db, zone_id, name, record_type, host, |(record, model)| {
     Ok(Record::from_rdata(
@@ -304,7 +302,7 @@ async fn query_records<E, M>(
       model.try_into()?,
     ))
   })
-    .await
+  .await
 }
 
 async fn query_records_raw<E, M>(
@@ -315,10 +313,10 @@ async fn query_records_raw<E, M>(
   host: &str,
   to_record: impl FnOnce((record::Model, E::Model)) -> anyhow::Result<Record<RData>> + Copy,
 ) -> anyhow::Result<RecordSet>
-  where
-    E: EntityTrait<Model=M>,
-    M: TryInto<RData, Error=EntityError>,
-    record::Entity: Related<E>,
+where
+  E: EntityTrait<Model = M>,
+  M: TryInto<RData, Error = EntityError>,
+  record::Entity: Related<E>,
 {
   fn call(
     zone_id: Uuid,

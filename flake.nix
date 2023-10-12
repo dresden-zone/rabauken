@@ -76,10 +76,10 @@
         update-schema = pkgs.writeScriptBin "update-schema" ''
           nix build ${self}#checks.${system}.test-sea-orm-cli-migration
           BUILD_DIR=$(nix build ${self}#checks.${system}.test-sea-orm-cli-migration --no-link --print-out-paths)
-          rm -rf entity/src/*
-          cp -r $BUILD_DIR/out/* ./entity/src/
-          mv ./entity/src/mod.rs ./entity/src/lib.rs
-          chmod -R 644 ./entity/src/*
+          rm -rf entity/src/models/*
+          cp -r $BUILD_DIR/out/* ./entity/src/models/
+          #mv ./entity/src/mod.rs ./entity/src/lib.rs
+          chmod -R 644 ./entity/src/models/*
           ${pkgs.cargo}/bin/cargo fmt
         '';
 
