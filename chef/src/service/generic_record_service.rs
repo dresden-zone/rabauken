@@ -1,14 +1,14 @@
 use entity::prelude::Record;
 use entity::prelude::Zone;
-use entity::{IntoRecord, record};
 use entity::zone;
+use entity::{record, IntoRecord};
 use sea_orm::entity::EntityTrait;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
+use sea_orm::QueryFilter;
 use sea_orm::Related;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
+use sea_query::Expr;
 use std::sync::Arc;
 use uuid::Uuid;
-use sea_orm::QueryFilter;
-use sea_query::Expr;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -25,26 +25,49 @@ impl GenericRecordService {
     zone_id: Uuid,
   ) -> anyhow::Result<Vec<(record::Model, Option<<E as EntityTrait>::Model>)>>
   where
-      E: EntityTrait<Model = M>,
-      record::Entity: Related<E>,
+    E: EntityTrait<Model = M>,
+    record::Entity: Related<E>,
   {
-
     fn call(zone_id: Uuid) -> Select<record::Entity> {
       record::Entity::find().inner_join(zone::Entity).filter(
         Expr::col((zone::Entity, zone::Column::Id))
-            .eq(Expr::val(zone_id))
-            .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
+          .eq(Expr::val(zone_id))
+          .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
       )
     }
 
-    Ok(call(zone_id)
+    Ok(
+      call(zone_id)
         .inner_join(E::default())
         .select_also(E::default())
         .all(&*self.db)
-        .await?)
-
+        .await?,
+    )
   }
- /*
+  pub(crate) async fn get_record<E, M>(
+    &mut self,
+    zone_id: Uuid,
+    record_id: Uuid,
+  ) -> anyhow::Result<Option<(record::Model, Option<<E as EntityTrait>::Model>)>>
+  where
+    E: EntityTrait<Model = M>,
+    record::Entity: Related<E>,
+  {
+    fn call(zone_id: Uuid, record_id: Uuid) -> Select<record::Entity> {
+      record::Entity::find_by_id(record_id)
+        .inner_join(zone::Entity)
+        .filter(Expr::col((zone::Entity, zone::Column::Id)).eq(Expr::val(zone_id)))
+    }
+
+    Ok(
+      call(zone_id, record_id)
+        .inner_join(E::default())
+        .select_also(E::default())
+        .one(&*self.db)
+        .await?,
+    )
+  }
+  /*
   pub(crate) async fn find<A: EntityTrait>(
     &mut self,
     zone_id: uuid,
