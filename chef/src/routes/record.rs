@@ -1,6 +1,6 @@
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::Json;
+use axum::{debug_handler, Json};
 
 use sea_orm::{EntityTrait, Related};
 use serde::{Deserialize, Serialize};
@@ -9,9 +9,10 @@ use uuid::Uuid;
 
 use crate::service::model::ZoneRequest;
 use crate::state::ChefState;
+use crate::routes::record_error;
 
-use entity::prelude::{Record, RecordA, Zone};
-use entity::record;
+use entity::prelude::{Record, RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt, Zone};
+use entity::{IntoRecord, record};
 
 #[derive(Serialize)]
 pub(crate) struct IdResponse {
@@ -34,53 +35,125 @@ pub(crate) enum RecordType {
   TXT,
 }
 
-pub(crate) struct ApiRecord<A: EntityTrait> {
+#[derive(Serialize)]
+pub(crate) struct ApiRecord<M> {
   pub record_type: RecordType,
   pub record: record::Model,
-  pub value: <A as EntityTrait>::Model,
+  pub value: M,
 }
 
-pub(crate) trait MergeObject<A: EntityTrait> {
+pub(crate) trait MergeObject<E: EntityTrait<Model = M>, M> {
   fn merge(
     value: (
-      <Zone as EntityTrait>::Model,
-      <Record as EntityTrait>::Model,
-      Option<<A as EntityTrait>::Model>,
+      record::Model,
+      Option<M>,
     ),
-  ) -> ApiRecord<A>;
+  ) -> ApiRecord<M>;
 }
 
-impl MergeObject<RecordA> for ApiRecord<RecordA> {
+impl MergeObject<RecordA, entity::record_a::Model> for ApiRecord<entity::record_a::Model> {
   fn merge(
     value: (
-      entity::zone::Model,
-      entity::record::Model,
-      std::option::Option<entity::record_a::Model>,
+      record::Model,
+      Option<entity::record_a::Model>,
     ),
-  ) -> ApiRecord<RecordA> {
-    ApiRecord::<RecordA> {
+  ) -> ApiRecord<entity::record_a::Model> {
+    ApiRecord::<entity::record_a::Model> {
       record_type: RecordType::A,
-      record: value.1,
-      value: value.2.unwrap(),
+      record: value.0,
+      value: value.1.unwrap(),
+    }
+  }
+}
+
+impl MergeObject<RecordAaaa, entity::record_aaaa::Model> for ApiRecord<entity::record_aaaa::Model> {
+  fn merge(
+    value: (
+      record::Model,
+      Option<entity::record_aaaa::Model>,
+    ),
+  ) -> ApiRecord<entity::record_aaaa::Model> {
+    ApiRecord::<entity::record_aaaa::Model> {
+      record_type: RecordType::AAAA,
+      record: value.0,
+      value: value.1.unwrap(),
+    }
+  }
+}
+
+impl MergeObject<RecordCname, entity::record_cname::Model> for ApiRecord<entity::record_cname::Model> {
+  fn merge(
+    value: (
+      record::Model,
+      Option<entity::record_cname::Model>,
+    ),
+  ) -> ApiRecord<entity::record_cname::Model> {
+    ApiRecord::<entity::record_cname::Model> {
+      record_type: RecordType::CNAME,
+      record: value.0,
+      value: value.1.unwrap(),
+    }
+  }
+}
+
+impl MergeObject<RecordMx, entity::record_mx::Model> for ApiRecord<entity::record_mx::Model> {
+  fn merge(
+    value: (
+      record::Model,
+      Option<entity::record_mx::Model>,
+    ),
+  ) -> ApiRecord<entity::record_mx::Model> {
+    ApiRecord::<entity::record_mx::Model> {
+      record_type: RecordType::MX,
+      record: value.0,
+      value: value.1.unwrap(),
+    }
+  }
+}
+
+
+impl MergeObject<RecordNs, entity::record_ns::Model> for ApiRecord<entity::record_ns::Model> {
+  fn merge(
+    value: (
+      record::Model,
+      Option<entity::record_ns::Model>,
+    ),
+  ) -> ApiRecord<entity::record_ns::Model> {
+    ApiRecord::<entity::record_ns::Model> {
+      record_type: RecordType::NS,
+      record: value.0,
+      value: value.1.unwrap(),
+    }
+  }
+}
+
+impl MergeObject<RecordTxt, entity::record_txt::Model> for ApiRecord<entity::record_txt::Model> {
+  fn merge(
+    value: (
+      record::Model,
+      Option<entity::record_txt::Model>,
+    ),
+  ) -> ApiRecord<entity::record_txt::Model> {
+    ApiRecord::<entity::record_txt::Model> {
+      record_type: RecordType::NS,
+      record: value.0,
+      value: value.1.unwrap(),
     }
   }
 }
 
 // RecordA
-pub(crate) async fn list_record<A: MergeObject<A> + Related<Record> + EntityTrait>(
+pub(crate) async fn list_record<E, M>(
   State(mut state): State<ChefState>,
   Path(zone_id): Path<Uuid>,
-) -> Result<Json<Arc<Vec<ApiRecord<RecordA>>>>, StatusCode>
+) -> Result<Json<Arc<Vec<ApiRecord<M>>>>, StatusCode>
 where
-  entity::prelude::Zone: Related<A>,
-  entity::prelude::Record: Related<A>,
-  Vec<ApiRecord<entity::prelude::RecordA>>: FromIterator<ApiRecord<A>>,
+    E: EntityTrait<Model = M>,
+    record::Entity: Related<E>,
+    ApiRecord<M> : MergeObject<E, M>
 {
-  match state.record_service.all::<A>(zone_id).await {
-    Ok(values) => {
-      let collection: Vec<ApiRecord<RecordA>> = values.into_iter().map(A::merge).collect();
-      Ok(Json(Arc::new(collection)))
-    }
+  match state.record_service.all::<E, _>(zone_id).await {
+    Ok(values) => Ok(Json(Arc::new(values.into_iter().map(ApiRecord::<M>::merge).collect()))),
     Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
   }
 }
@@ -110,6 +183,7 @@ pub(crate) async fn delete_record(
   StatusCode::NOT_IMPLEMENTED
 }
 
+/*
 pub(crate) async fn get_record<A: MergeObject<A> + Related<Record> + EntityTrait>(
   State(state): State<ChefState>,
   Path(zone_id): Path<Uuid>,
@@ -126,3 +200,4 @@ pub(crate) async fn get_record<A: MergeObject<A> + Related<Record> + EntityTrait
    */
   Err(StatusCode::INTERNAL_SERVER_ERROR)
 }
+*/

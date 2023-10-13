@@ -1,13 +1,14 @@
 use entity::prelude::Record;
 use entity::prelude::Zone;
-use entity::record;
+use entity::{IntoRecord, record};
 use entity::zone;
 use sea_orm::entity::EntityTrait;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
 use sea_orm::Related;
 use std::sync::Arc;
 use uuid::Uuid;
-use sea_orm::RelationTrait;
+use sea_orm::QueryFilter;
+use sea_query::Expr;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -19,22 +20,29 @@ impl GenericRecordService {
     GenericRecordService { db }
   }
 
-  pub(crate) async fn all<A: EntityTrait>(
+  pub(crate) async fn all<E, M>(
     &mut self,
-    id: Uuid,
-  ) -> anyhow::Result<Vec<(zone::Model, record::Model, Option<<A as EntityTrait>::Model>)>>
+    zone_id: Uuid,
+  ) -> anyhow::Result<Vec<(record::Model, Option<<E as EntityTrait>::Model>)>>
   where
-    entity::prelude::Record: Related<A>,
-    entity::prelude::Zone: Related<A>,
+      E: EntityTrait<Model = M>,
+      record::Entity: Related<E>,
   {
-    Ok(
-      Zone::find_by_id(id)
-        .inner_join(entity::zone::Relation::Record.def())
-        .inner_join(A::default())
-        .select_also(A::default())
+
+    fn call(zone_id: Uuid) -> Select<record::Entity> {
+      record::Entity::find().inner_join(zone::Entity).filter(
+        Expr::col((zone::Entity, zone::Column::Id))
+            .eq(Expr::val(zone_id))
+            .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
+      )
+    }
+
+    Ok(call(zone_id)
+        .inner_join(E::default())
+        .select_also(E::default())
         .all(&*self.db)
-        .await?,
-    )
+        .await?)
+
   }
  /*
   pub(crate) async fn find<A: EntityTrait>(
