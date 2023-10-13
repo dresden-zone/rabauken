@@ -3,12 +3,10 @@ name = "entity"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-serde = { version = "1", default-features = false, features = ["derive"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+trust-dns-proto = { version = "0.23", default-features = false, optional = true }
 time = { version = "0.3", default-features = false, features = ["serde"] }
 uuid = { version = "1.4", default-features = false, features = ["serde"] }
-trust-dns-proto = { version = "0.23", default-features = false, optional = true }
 sea-orm = { version = "0.12", default-features = false }
 thiserror = "1.0"
