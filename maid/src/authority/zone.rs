@@ -148,27 +148,35 @@ impl Authority for ZoneAuthority {
 
     let result = match result {
       Err(LookupError::ResponseCode(ResponseCode::NXDomain)) => {
-        // TODO:
-        // return if inner
-        //   .records
-        //   .keys()
-        //   .any(|key| key.name() == name || name.zone_of(key.name()))
-        // {
-        //   Err(LookupError::NameExists)
-        // } else {
-        let code = if self.origin().zone_of(name) {
-          ResponseCode::NXDomain
+        // TODO: evaluate this query, should this be done?
+        return if self
+          .zone_service
+          .name_exists(self.zone_id, &host)
+          .await
+          .unwrap() {
+          Err(LookupError::NameExists)
         } else {
-          ResponseCode::Refused
+          let code = if self.origin().zone_of(name) {
+            ResponseCode::NXDomain
+          } else {
+            ResponseCode::Refused
+          };
+          Err(LookupError::from(code))
         };
-        Err(LookupError::from(code))
-        // };
       }
       Err(e) => return Err(e),
       o => o,
     };
 
-    result.map(|answers| AuthLookup::answers(answers, additionals))
+    result.map(|answers| {
+      if let Some(x) = answers.iter().next() {
+        if x.record_type() == RecordType::SOA {
+          return AuthLookup::SOA(answers);
+        }
+      }
+
+      AuthLookup::answers(answers, additionals)
+    })
   }
 
   async fn search(

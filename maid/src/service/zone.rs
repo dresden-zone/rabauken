@@ -5,8 +5,11 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
+use sea_orm::sea_query::Query;
+use sea_orm::DatabaseBackend::Postgres;
 use sea_orm::{
-  ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Related, Select,
+  ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+  QuerySelect, QueryTrait, Related, Select,
 };
 use time::macros::datetime;
 use time::OffsetDateTime;
@@ -16,6 +19,7 @@ use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordS
 
 use entity::IntoRecord;
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
+use migration::extension::postgres::PgExpr;
 
 // Thu Oct 12 2023 00:00:00 GMT+0000
 const EPOCH: OffsetDateTime = datetime!(2023-10-12 00:00:00 UTC);
@@ -291,6 +295,28 @@ impl ZoneService {
     } else {
       None
     }
+  }
+
+  pub(crate) async fn name_exists(&self, zone_id: Uuid, host: &str) -> anyhow::Result<bool> {
+    Ok(
+      record::Entity::find()
+        .inner_join(zone::Entity)
+        .filter(
+          Expr::col((zone::Entity, zone::Column::Id)).eq(zone_id).and(
+            Expr::col((record::Entity, record::Column::Name))
+              .eq(host)
+              .or(
+                Expr::val('%')
+                  .concat(Expr::col((record::Entity, record::Column::Name)))
+                  .like(host),
+              ),
+          ),
+        )
+        .limit(1)
+        .one(self.db.as_ref())
+        .await?
+        .is_some(),
+    )
   }
 }
 
