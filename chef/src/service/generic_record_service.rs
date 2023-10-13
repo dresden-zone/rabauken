@@ -1,10 +1,13 @@
 use entity::prelude::Record;
+use entity::prelude::Zone;
 use entity::record;
+use entity::zone;
 use sea_orm::entity::EntityTrait;
-use sea_orm::DatabaseConnection;
+use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait};
 use sea_orm::Related;
 use std::sync::Arc;
 use uuid::Uuid;
+use sea_orm::RelationTrait;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -19,25 +22,31 @@ impl GenericRecordService {
   pub(crate) async fn all<A: EntityTrait>(
     &mut self,
     id: Uuid,
-  ) -> anyhow::Result<Vec<(record::Model, Option<<A as EntityTrait>::Model>)>>
+  ) -> anyhow::Result<Vec<(zone::Model, record::Model, Option<<A as EntityTrait>::Model>)>>
   where
     entity::prelude::Record: Related<A>,
+    entity::prelude::Zone: Related<A>,
   {
     Ok(
-      Record::find_by_id(id)
+      Zone::find_by_id(id)
+        .inner_join(entity::zone::Relation::Record.def())
         .inner_join(A::default())
-        //.join(JoinType::InnerJoin, relation.def())
         .select_also(A::default())
         .all(&*self.db)
         .await?,
     )
   }
-  /*
+ /*
   pub(crate) async fn find<A: EntityTrait>(
     &mut self,
-    id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
+    zone_id: uuid,
+    record_id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
   ) -> anyhow::Result<Option<A::Model>> {
-    Ok(A::find_by_id(id).one(&*self.db).await?)
+    Ok(Record::find_by_id(zone_id)
+        .inner_join(A::default())
+        .filter()
+        .select_also(A::default())
+        .one(&*self.db).await?)
   }
 
   pub(crate) async fn create<A: EntityTrait, B: ActiveModelTrait<Entity = A>>(

@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::service::model::ZoneRequest;
 use crate::state::ChefState;
 
-use entity::prelude::{Record, RecordA};
+use entity::prelude::{Record, RecordA, Zone};
 use entity::record;
 
 #[derive(Serialize)]
@@ -43,6 +43,7 @@ pub(crate) struct ApiRecord<A: EntityTrait> {
 pub(crate) trait MergeObject<A: EntityTrait> {
   fn merge(
     value: (
+      <Zone as EntityTrait>::Model,
       <Record as EntityTrait>::Model,
       Option<<A as EntityTrait>::Model>,
     ),
@@ -52,14 +53,15 @@ pub(crate) trait MergeObject<A: EntityTrait> {
 impl MergeObject<RecordA> for ApiRecord<RecordA> {
   fn merge(
     value: (
+      entity::zone::Model,
       entity::record::Model,
       std::option::Option<entity::record_a::Model>,
     ),
   ) -> ApiRecord<RecordA> {
     ApiRecord::<RecordA> {
       record_type: RecordType::A,
-      record: value.0,
-      value: value.1.unwrap(),
+      record: value.1,
+      value: value.2.unwrap(),
     }
   }
 }
@@ -70,6 +72,7 @@ pub(crate) async fn list_record<A: MergeObject<A> + Related<Record> + EntityTrai
   Path(zone_id): Path<Uuid>,
 ) -> Result<Json<Arc<Vec<ApiRecord<RecordA>>>>, StatusCode>
 where
+  entity::prelude::Zone: Related<A>,
   entity::prelude::Record: Related<A>,
   Vec<ApiRecord<entity::prelude::RecordA>>: FromIterator<ApiRecord<A>>,
 {
@@ -108,8 +111,18 @@ pub(crate) async fn delete_record(
 }
 
 pub(crate) async fn get_record<A: MergeObject<A> + Related<Record> + EntityTrait>(
-  State(_state): State<ChefState>,
-  Path(_zone_id): Path<Uuid>,
+  State(state): State<ChefState>,
+  Path(zone_id): Path<Uuid>,
+  Path(record_id): Path<Uuid>,
 ) -> Result<Json<Arc<ApiRecord<A>>>, StatusCode> {
-  Err(StatusCode::NOT_IMPLEMENTED)
+  /*match state.record_service.find::<A>(zone_id, record_id).await {
+    Ok(values) => {
+      let collection: Vec<ApiRecord<RecordA>> = values.into_iter().map(A::merge).collect();
+      Ok(Json(Arc::new(collection)))
+    }
+    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+  }*.
+
+   */
+  Err(StatusCode::INTERNAL_SERVER_ERROR)
 }
