@@ -5,7 +5,8 @@ use clap::Parser;
 use sea_orm::Database;
 use tokio::select;
 use tokio::signal::ctrl_c;
-use tracing::info;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 use migration::{Migrator, MigratorTrait};
 
@@ -22,9 +23,22 @@ mod state;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-  tracing_subscriber::fmt::init();
-
   let args = ChefArgs::parse();
+
+  let subscriber = FmtSubscriber::builder()
+    .with_max_level(Level::INFO)
+    .compact()
+    .finish();
+
+  tracing::subscriber::set_global_default(subscriber)?;
+
+  info!(concat!(
+    "Booting ",
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    "..."
+  ));
 
   let db = Arc::new(Database::connect(args.database_url).await?);
   Migrator::up(&*db, None).await?;

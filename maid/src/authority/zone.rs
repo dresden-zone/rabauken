@@ -153,7 +153,8 @@ impl Authority for ZoneAuthority {
           .zone_service
           .name_exists(self.zone_id, &host)
           .await
-          .unwrap() {
+          .unwrap()
+        {
           Err(LookupError::NameExists)
         } else {
           let code = if self.origin().zone_of(name) {

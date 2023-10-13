@@ -6,8 +6,8 @@ edition = "2021"
 [dependencies]
 sea-orm = { version = "0.12", default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls"] }
 tokio = { version = "1.32", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
 tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt"] }
 trust-dns-server = { version = "0.23", default-features = false }
 entity = { path = "../entity", features = ["trust-dns-proto"] }
 clap = { version = "4.4", features = ["derive", "env"] }
