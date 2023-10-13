@@ -1,3 +1,4 @@
+use crate::service::model::ToModel;
 use entity::prelude::Record;
 use entity::prelude::Zone;
 use entity::zone;
@@ -9,6 +10,7 @@ use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
 use sea_query::Expr;
 use std::sync::Arc;
 use uuid::Uuid;
+use entity::zone::Model;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -67,31 +69,29 @@ impl GenericRecordService {
         .await?,
     )
   }
-  /*
-  pub(crate) async fn find<A: EntityTrait>(
-    &mut self,
-    zone_id: uuid,
-    record_id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-  ) -> anyhow::Result<Option<A::Model>> {
-    Ok(Record::find_by_id(zone_id)
-        .inner_join(A::default())
-        .filter()
-        .select_also(A::default())
-        .one(&*self.db).await?)
-  }
 
-  pub(crate) async fn create<A: EntityTrait, B: ActiveModelTrait<Entity = A>>(
+  pub(crate) async fn create<E, M, A, D>(
     &mut self,
-    id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: impl ToModel<A, B>,
-  ) -> anyhow::Result<<<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType> {
+    zone_id: Uuid,
+    data: D,
+  ) -> anyhow::Result<<<E as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType>
+  where
+    E: EntityTrait<Model = M>,
+    A: ActiveModelTrait<Entity = E>,
+    record::Entity: Related<E>,
+    D: ToModel<E, A>
+  {
     Ok(
-      A::insert(data.new_with_uuid(id))
+      Record::insert(data.new_with_uuid(zone_id))
         .exec(&*self.db)
         .await?
         .last_insert_id,
     )
   }
+
+  /*
+
+
   pub(crate) async fn delete<A: EntityTrait>(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,

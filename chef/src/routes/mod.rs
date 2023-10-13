@@ -11,8 +11,9 @@ use crate::state::ChefState;
 
 mod record;
 mod zone;
+mod model;
 
-use crate::routes::record::{get_record, list_record, ApiRecord};
+use crate::routes::record::{get_record, list_record};
 use entity::prelude::{RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt};
 
 pub fn record_error(error: anyhow::Error) {
