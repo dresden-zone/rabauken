@@ -2,7 +2,6 @@ use crate::service::model::ToModel;
 use sea_orm::entity::EntityTrait;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, IntoActiveModel, PrimaryKeyTrait};
 use std::sync::Arc;
-use uuid::Uuid;
 
 #[derive(Clone)]
 pub(crate) struct GenericDatabaseService {

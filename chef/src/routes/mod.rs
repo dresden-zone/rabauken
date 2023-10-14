@@ -1,17 +1,12 @@
-use axum::extract::{Path, State};
-use axum::http::StatusCode;
-use axum::routing::{delete, get, post, put};
-use axum::{debug_handler, Json, Router};
-use std::sync::Arc;
-use tracing::error;
-use uuid::Uuid;
-
 use crate::routes::zone::{create_zone, delete_zone, get_zone, list_zones, modify_zone};
 use crate::service::model::{
   CreateAAAARecord, CreateARecord, CreateCnameRecord, CreateMxRecord, CreateNsRecord,
   CreateTxtRecord,
 };
 use crate::state::ChefState;
+use axum::routing::{delete, get, post, put};
+use axum::Router;
+use tracing::error;
 
 mod model;
 mod record;

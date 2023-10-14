@@ -1,4 +1,4 @@
-use entity::prelude::{Record, RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt};
+use entity::prelude::{RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt};
 use entity::record;
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};

@@ -1,13 +1,11 @@
 use crate::service::model::ToModel;
 use entity::prelude::Record;
-use entity::prelude::Zone;
+use entity::record;
 use entity::zone;
-use entity::zone::Model;
-use entity::{record, IntoRecord};
 use sea_orm::entity::EntityTrait;
 use sea_orm::QueryFilter;
 use sea_orm::Related;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, Select};
 use sea_query::Expr;
 use std::sync::Arc;
 use uuid::Uuid;

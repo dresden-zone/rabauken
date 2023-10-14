@@ -1,23 +1,17 @@
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use axum::{debug_handler, Json};
+use axum::Json;
 
+use crate::service::merge::{ApiRecord, MergeObject, RecordType};
+use crate::service::model::{ToModel, ZoneRequest};
+use crate::state::ChefState;
 use sea_orm::{ActiveModelTrait, EntityTrait, Related};
-use sea_query::Tokenizer;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::routes::record_error;
-use crate::service::merge::{ApiRecord, MergeObject, RecordType};
-use crate::service::model::CreateARecord;
-use crate::service::model::{ToModel, ZoneRequest};
-use crate::state::ChefState;
-
-use entity::prelude::{
-  Record, RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt, Zone,
-};
-use entity::{record, IntoRecord};
+use entity::prelude::Record;
+use entity::record;
 
 #[derive(Serialize)]
 pub(crate) struct IdResponse {

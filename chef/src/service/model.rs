@@ -3,8 +3,7 @@ use entity::prelude::{
 };
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};
 use sea_orm::entity::EntityTrait;
-use sea_orm::prelude::TimeDateTimeWithTimeZone;
-use sea_orm::{ActiveModelTrait, ActiveValue, PrimaryKeyTrait};
+use sea_orm::{ActiveModelTrait, ActiveValue};
 use serde::Deserialize;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use time::OffsetDateTime;
@@ -191,7 +190,6 @@ impl ToModel<Zone, zone::ActiveModel, Uuid> for ZoneRequest {
 
 impl ToModel<RecordA, record_a::ActiveModel, Uuid> for CreateARecord {
   fn new_with_uuid(self, id: Uuid) -> record_a::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_a::ActiveModel {
       id: ActiveValue::Set(id),
       address: ActiveValue::Set(self.address.to_string()),
@@ -201,7 +199,6 @@ impl ToModel<RecordA, record_a::ActiveModel, Uuid> for CreateARecord {
 
 impl ToModel<RecordAaaa, record_aaaa::ActiveModel, Uuid> for CreateAAAARecord {
   fn new_with_uuid(self, id: Uuid) -> record_aaaa::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_aaaa::ActiveModel {
       id: ActiveValue::Set(id),
       address: ActiveValue::Set(self.address.to_string()),
@@ -211,7 +208,6 @@ impl ToModel<RecordAaaa, record_aaaa::ActiveModel, Uuid> for CreateAAAARecord {
 
 impl ToModel<RecordCname, record_cname::ActiveModel, Uuid> for CreateCnameRecord {
   fn new_with_uuid(self, id: Uuid) -> record_cname::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_cname::ActiveModel {
       id: ActiveValue::Set(id),
       target: ActiveValue::Set(self.target),
@@ -221,7 +217,6 @@ impl ToModel<RecordCname, record_cname::ActiveModel, Uuid> for CreateCnameRecord
 
 impl ToModel<RecordMx, record_mx::ActiveModel, Uuid> for CreateMxRecord {
   fn new_with_uuid(self, id: Uuid) -> record_mx::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_mx::ActiveModel {
       id: ActiveValue::Set(id),
       preference: ActiveValue::Set(self.preference),
@@ -232,7 +227,6 @@ impl ToModel<RecordMx, record_mx::ActiveModel, Uuid> for CreateMxRecord {
 
 impl ToModel<RecordNs, record_ns::ActiveModel, Uuid> for CreateNsRecord {
   fn new_with_uuid(self, id: Uuid) -> record_ns::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_ns::ActiveModel {
       id: ActiveValue::Set(id),
       target: ActiveValue::Set(self.target),
@@ -242,7 +236,6 @@ impl ToModel<RecordNs, record_ns::ActiveModel, Uuid> for CreateNsRecord {
 
 impl ToModel<RecordTxt, record_txt::ActiveModel, Uuid> for CreateTxtRecord {
   fn new_with_uuid(self, id: Uuid) -> record_txt::ActiveModel {
-    let current_time = OffsetDateTime::now_utc();
     record_txt::ActiveModel {
       id: ActiveValue::Set(id),
       content: ActiveValue::Set(self.content),
