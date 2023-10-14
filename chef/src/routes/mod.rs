@@ -76,27 +76,27 @@ pub(super) fn routes() -> Router<ChefState> {
       get(get_record::<RecordTxt, entity::record_txt::Model>),
     )
     .route(
-      "/v1/zone/:zone_id/record/a/",
+      "/v1/zone/:zone_id/record/a",
       post(create_record::<RecordA, _, _, CreateARecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/aaaa/",
+      "/v1/zone/:zone_id/record/aaaa",
       post(create_record::<RecordAaaa, _, _, CreateAAAARecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/cname/",
+      "/v1/zone/:zone_id/record/cname",
       post(create_record::<RecordCname, _, _, CreateCnameRecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/mx/",
+      "/v1/zone/:zone_id/record/mx",
       post(create_record::<RecordMx, _, _, CreateMxRecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/ns/",
+      "/v1/zone/:zone_id/record/ns",
       post(create_record::<RecordNs, _, _, CreateNsRecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/txt/",
+      "/v1/zone/:zone_id/record/txt",
       post(create_record::<RecordTxt, _, _, CreateTxtRecord>),
     )
     .route(
