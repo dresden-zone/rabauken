@@ -2,8 +2,8 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 
-use crate::service::merge::{ApiRecord, MergeObject, RecordType};
-use crate::service::model::{ToModel, ZoneRequest};
+use crate::service::merge::{ApiRecord, MergeObject};
+use crate::service::model::ToModel;
 use crate::state::ChefState;
 use sea_orm::{ActiveModelTrait, EntityTrait, PrimaryKeyTrait, Related};
 use serde::Serialize;
@@ -73,13 +73,29 @@ where
     Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
   }
 }
-
-pub(crate) async fn modify_record(
-  State(_state): State<ChefState>,
-  Path(_zone_id): Path<Uuid>,
-  Path(_record_type): Path<RecordType>,
-) -> StatusCode {
-  StatusCode::NOT_IMPLEMENTED
+pub(crate) async fn modify_record<Entity, Model, ActiveModel, RequestData>(
+  State(mut state): State<ChefState>,
+  Path(zone_id): Path<Uuid>,
+  Path(record_id): Path<Uuid>,
+  Json(payload): Json<RequestData>,
+) -> Result<Json<Arc<ApiRecord<Model>>>, StatusCode>
+where
+  Entity: EntityTrait<Model = Model>,
+  record::Entity: Related<Entity>,
+  ActiveModel: ActiveModelTrait<Entity = Entity> + sea_orm::ActiveModelBehavior + std::marker::Send,
+  RequestData:
+    ToModel<Entity, ActiveModel, Uuid> + ToModel<Record, record::ActiveModel, (Uuid, Uuid)> + Clone,
+  ApiRecord<Model>: MergeObject<Entity, Model>,
+  Model: sea_orm::IntoActiveModel<ActiveModel>,
+{
+  match state
+    .record_service
+    .update::<Entity, Model, ActiveModel, RequestData>(zone_id, record_id, payload)
+    .await
+  {
+    Ok(value) => Ok(Json(Arc::new(ApiRecord::<Model>::merge(value)))),
+    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+  }
 }
 
 pub(crate) async fn get_record<E, M>(

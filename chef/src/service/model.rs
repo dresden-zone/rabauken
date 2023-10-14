@@ -28,8 +28,8 @@ where
 {
   let current_time = OffsetDateTime::now_utc();
   record::ActiveModel {
-    id: ActiveValue::Set(id.0),
-    created: ActiveValue::Set(current_time),
+    id: ActiveValue::Unchanged(id.0),
+    created: ActiveValue::Unchanged(current_time),
     updated: ActiveValue::Set(current_time),
     name: ActiveValue::Set(data.get_name()),
     ttl: ActiveValue::Set(data.get_ttl()),
@@ -174,9 +174,9 @@ impl ToModel<Zone, zone::ActiveModel, Uuid> for ZoneRequest {
   fn new_with_uuid(self, id: Uuid) -> zone::ActiveModel {
     let current_time = OffsetDateTime::now_utc();
     zone::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       created: ActiveValue::Set(current_time),
-      updated: ActiveValue::Set(current_time),
+      updated: ActiveValue::Unchanged(current_time),
       name: ActiveValue::Set(self.name),
       verified: ActiveValue::Set(false),
       ttl: ActiveValue::Set(500),
@@ -191,7 +191,7 @@ impl ToModel<Zone, zone::ActiveModel, Uuid> for ZoneRequest {
 impl ToModel<RecordA, record_a::ActiveModel, Uuid> for CreateARecord {
   fn new_with_uuid(self, id: Uuid) -> record_a::ActiveModel {
     record_a::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       address: ActiveValue::Set(self.address.to_string()),
     }
   }
@@ -200,7 +200,7 @@ impl ToModel<RecordA, record_a::ActiveModel, Uuid> for CreateARecord {
 impl ToModel<RecordAaaa, record_aaaa::ActiveModel, Uuid> for CreateAAAARecord {
   fn new_with_uuid(self, id: Uuid) -> record_aaaa::ActiveModel {
     record_aaaa::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       address: ActiveValue::Set(self.address.to_string()),
     }
   }
@@ -209,7 +209,7 @@ impl ToModel<RecordAaaa, record_aaaa::ActiveModel, Uuid> for CreateAAAARecord {
 impl ToModel<RecordCname, record_cname::ActiveModel, Uuid> for CreateCnameRecord {
   fn new_with_uuid(self, id: Uuid) -> record_cname::ActiveModel {
     record_cname::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       target: ActiveValue::Set(self.target),
     }
   }
@@ -218,7 +218,7 @@ impl ToModel<RecordCname, record_cname::ActiveModel, Uuid> for CreateCnameRecord
 impl ToModel<RecordMx, record_mx::ActiveModel, Uuid> for CreateMxRecord {
   fn new_with_uuid(self, id: Uuid) -> record_mx::ActiveModel {
     record_mx::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       preference: ActiveValue::Set(self.preference),
       exchange: ActiveValue::Set(self.exchange),
     }
@@ -228,7 +228,7 @@ impl ToModel<RecordMx, record_mx::ActiveModel, Uuid> for CreateMxRecord {
 impl ToModel<RecordNs, record_ns::ActiveModel, Uuid> for CreateNsRecord {
   fn new_with_uuid(self, id: Uuid) -> record_ns::ActiveModel {
     record_ns::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       target: ActiveValue::Set(self.target),
     }
   }
@@ -237,7 +237,7 @@ impl ToModel<RecordNs, record_ns::ActiveModel, Uuid> for CreateNsRecord {
 impl ToModel<RecordTxt, record_txt::ActiveModel, Uuid> for CreateTxtRecord {
   fn new_with_uuid(self, id: Uuid) -> record_txt::ActiveModel {
     record_txt::ActiveModel {
-      id: ActiveValue::Set(id),
+      id: ActiveValue::Unchanged(id),
       content: ActiveValue::Set(self.content),
     }
   }

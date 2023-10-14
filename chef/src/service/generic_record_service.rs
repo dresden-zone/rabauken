@@ -118,18 +118,33 @@ impl GenericRecordService {
     )
   }
 
-  /*
-  pub(crate) async fn update<
-    A: EntityTrait,
-    B: ActiveModelTrait<Entity = A> + sea_orm::ActiveModelBehavior + std::marker::Send,
-  >(
+  pub(crate) async fn update<Entity, Model, ActiveModel, RequestData>(
     &mut self,
-    id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: impl ToModel<A, B>,
-  ) -> anyhow::Result<A::Model>
+    zone_id: Uuid,
+    record_id: Uuid,
+    data: RequestData,
+  ) -> anyhow::Result<(record::Model, Option<<Entity as EntityTrait>::Model>)>
   where
-    <A as EntityTrait>::Model: IntoActiveModel<B>,
+    Entity: EntityTrait<Model = Model>,
+    ActiveModel: ActiveModelTrait<Entity = Entity> + sea_orm::ActiveModelBehavior + Send,
+    record::Entity: Related<Entity>,
+    RequestData: ToModel<Entity, ActiveModel, Uuid>
+      + ToModel<Record, entity::record::ActiveModel, (Uuid, Uuid)>
+      + Clone,
+    Model: sea_orm::IntoActiveModel<ActiveModel>,
   {
-    Ok(data.new_with_uuid(id).update(self.db.as_ref()).await?)
-  }*/
+    let result_record =
+      <RequestData as ToModel<Record, record::ActiveModel, (Uuid, Uuid)>>::new_with_uuid(
+        data.clone(),
+        (record_id, zone_id),
+      )
+      .update(&*self.db)
+      .await?;
+
+    let temp: ActiveModel =
+      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_id);
+    let result_special_record = temp.update(&*self.db).await?;
+
+    Ok((result_record, Some(result_special_record)))
+  }
 }
