@@ -3,9 +3,9 @@ use entity::prelude::Record;
 use entity::record;
 use entity::zone;
 use sea_orm::entity::EntityTrait;
-use sea_orm::QueryFilter;
 use sea_orm::Related;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Select};
+use sea_orm::{PrimaryKeyTrait, QueryFilter};
 use sea_query::Expr;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -99,16 +99,26 @@ impl GenericRecordService {
     Ok(record_uuid)
   }
 
-  /*
-
-
-  pub(crate) async fn delete<A: EntityTrait>(
-    &mut self,
-    id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-  ) -> anyhow::Result<u64> {
-    Ok(A::delete_by_id(id).exec(&*self.db).await?.rows_affected)
+  pub(crate) async fn delete<Entity>(&mut self, record_id: Uuid) -> anyhow::Result<bool>
+  where
+    Entity: EntityTrait,
+    <<Entity as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType: From<uuid::Uuid>,
+  {
+    Ok(
+      Record::delete_by_id(record_id)
+        .exec(&*self.db)
+        .await?
+        .rows_affected
+        > 0
+        && Entity::delete_by_id(record_id)
+          .exec(&*self.db)
+          .await?
+          .rows_affected
+          > 0,
+    )
   }
 
+  /*
   pub(crate) async fn update<
     A: EntityTrait,
     B: ActiveModelTrait<Entity = A> + sea_orm::ActiveModelBehavior + std::marker::Send,

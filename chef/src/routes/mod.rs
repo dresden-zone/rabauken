@@ -12,7 +12,7 @@ mod model;
 mod record;
 mod zone;
 
-use crate::routes::record::{create_record, get_record, list_record};
+use crate::routes::record::{create_record, delete_record, get_record, list_record};
 use entity::prelude::{RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt};
 
 pub fn record_error(error: anyhow::Error) {
@@ -97,5 +97,29 @@ pub(super) fn routes() -> Router<ChefState> {
     .route(
       "/v1/zone/:zone_id/record/txt/",
       post(create_record::<RecordTxt, _, _, CreateTxtRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/a/",
+      delete(delete_record::<RecordA>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/aaaa/:record_id",
+      delete(delete_record::<RecordAaaa>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/cname/:record_id",
+      delete(delete_record::<RecordCname>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/mx/:record_id",
+      delete(delete_record::<RecordMx>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/ns/:record_id",
+      delete(delete_record::<RecordNs>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/txt/:record_id",
+      delete(delete_record::<RecordTxt>),
     )
 }

@@ -5,7 +5,7 @@ use axum::Json;
 use crate::service::merge::{ApiRecord, MergeObject, RecordType};
 use crate::service::model::{ToModel, ZoneRequest};
 use crate::state::ChefState;
-use sea_orm::{ActiveModelTrait, EntityTrait, Related};
+use sea_orm::{ActiveModelTrait, EntityTrait, PrimaryKeyTrait, Related};
 use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -58,16 +58,23 @@ where
   }
 }
 
-pub(crate) async fn modify_record(
-  State(_state): State<ChefState>,
-  Path(_zone_id): Path<Uuid>,
-  Path(_record_type): Path<RecordType>,
-  Json(_payload): Json<ZoneRequest>,
-) -> StatusCode {
-  StatusCode::NOT_IMPLEMENTED
+pub(crate) async fn delete_record<Entity>(
+  State(mut state): State<ChefState>,
+  Path(_): Path<Uuid>,
+  Path(record_id): Path<Uuid>,
+) -> StatusCode
+where
+  Entity: EntityTrait,
+  <<Entity as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType: From<uuid::Uuid>,
+{
+  match state.record_service.delete::<Entity>(record_id).await {
+    Ok(true) => StatusCode::OK,
+    Ok(false) => StatusCode::NOT_FOUND,
+    Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+  }
 }
 
-pub(crate) async fn delete_record(
+pub(crate) async fn modify_record(
   State(_state): State<ChefState>,
   Path(_zone_id): Path<Uuid>,
   Path(_record_type): Path<RecordType>,

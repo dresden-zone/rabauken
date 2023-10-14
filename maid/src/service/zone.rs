@@ -6,10 +6,8 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
 
-
 use sea_orm::{
-  ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
-  QuerySelect, Related, Select,
+  ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QuerySelect, Related, Select,
 };
 use time::macros::datetime;
 use time::OffsetDateTime;
