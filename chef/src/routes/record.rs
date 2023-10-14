@@ -5,7 +5,8 @@ use axum::Json;
 use crate::service::merge::{ApiRecord, MergeObject};
 use crate::service::model::ToModel;
 use crate::state::ChefState;
-use sea_orm::{ActiveModelTrait, EntityTrait, PrimaryKeyTrait, Related};
+use sea_orm::{ActiveModelBehavior, ActiveModelTrait, EntityTrait, PrimaryKeyTrait, Related};
+use sea_query::BinOper::Mod;
 use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -44,20 +45,22 @@ pub(crate) async fn create_record<Entity, Model, ActiveModel, RequestData>(
   State(mut state): State<ChefState>,
   Path(zone_id): Path<Uuid>,
   Json(payload): Json<RequestData>,
-) -> Result<Json<Arc<Uuid>>, StatusCode>
+) -> Result<Json<Arc<ApiRecord<Model>>>, StatusCode>
 where
   Entity: EntityTrait<Model = Model>,
   record::Entity: Related<Entity>,
-  ActiveModel: ActiveModelTrait<Entity = Entity>,
+  ActiveModel: ActiveModelTrait<Entity = Entity> + ActiveModelBehavior + Send,
   RequestData:
     ToModel<Entity, ActiveModel, Uuid> + ToModel<Record, record::ActiveModel, (Uuid, Uuid)> + Clone,
+  ApiRecord<Model>: MergeObject<Entity, Model>,
+  Model: sea_orm::IntoActiveModel<ActiveModel>,
 {
   match state
     .record_service
     .create::<Entity, Model, ActiveModel, RequestData>(zone_id, payload)
     .await
   {
-    Ok(value) => Ok(Json(Arc::new(value))),
+    Ok(value) => Ok(Json(Arc::new(ApiRecord::<Model>::merge(value)))),
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)

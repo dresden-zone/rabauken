@@ -3,7 +3,7 @@ use entity::prelude::Record;
 use entity::record;
 use entity::zone;
 use sea_orm::entity::EntityTrait;
-use sea_orm::Related;
+use sea_orm::{ActiveModelBehavior, Related};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Select};
 use sea_orm::{PrimaryKeyTrait, QueryFilter};
 use sea_query::Expr;
@@ -72,31 +72,31 @@ impl GenericRecordService {
     &mut self,
     zone_id: Uuid,
     data: RequestData,
-  ) -> anyhow::Result<Uuid>
+  ) -> anyhow::Result<(record::Model, Option<Model>)>
   where
     Entity: EntityTrait<Model = Model>,
-    ActiveModel: ActiveModelTrait<Entity = Entity>,
+    ActiveModel: ActiveModelTrait<Entity = Entity> + ActiveModelBehavior + Send,
     record::Entity: Related<Entity>,
     RequestData: ToModel<Entity, ActiveModel, Uuid>
       + ToModel<Record, entity::record::ActiveModel, (Uuid, Uuid)>
       + Clone,
+    Model: sea_orm::IntoActiveModel<ActiveModel>,
   {
     let record_uuid = Uuid::new_v4();
-    Record::insert(<RequestData as ToModel<
-      Record,
-      record::ActiveModel,
-      (Uuid, Uuid),
-    >>::new_with_uuid(data.clone(), (record_uuid, zone_id)))
-    .exec(&*self.db)
-    .await?;
+    let record_result =
+      <RequestData as ToModel<Record, record::ActiveModel, (Uuid, Uuid)>>::new_with_uuid(
+        data.clone(),
+        (record_uuid, zone_id),
+      )
+      .insert(&*self.db)
+      .await?;
 
-    Entity::insert(
-      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_uuid),
-    )
-    .exec(&*self.db)
-    .await?;
+    let record_result_special =
+      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_uuid)
+        .insert(&*self.db)
+        .await?;
 
-    Ok(record_uuid)
+    Ok((record_result, Some(record_result_special)))
   }
 
   pub(crate) async fn delete<Entity>(&mut self, record_id: Uuid) -> anyhow::Result<bool>
@@ -133,7 +133,7 @@ impl GenericRecordService {
       + Clone,
     Model: sea_orm::IntoActiveModel<ActiveModel>,
   {
-    let result_record =
+    let record_model =
       <RequestData as ToModel<Record, record::ActiveModel, (Uuid, Uuid)>>::new_with_uuid(
         data.clone(),
         (record_id, zone_id),
@@ -141,10 +141,11 @@ impl GenericRecordService {
       .update(&*self.db)
       .await?;
 
-    let temp: ActiveModel =
-      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_id);
-    let result_special_record = temp.update(&*self.db).await?;
+    let record_model_special =
+      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_id)
+        .update(&*self.db)
+        .await?;
 
-    Ok((result_record, Some(result_special_record)))
+    Ok((record_model, Some(record_model_special)))
   }
 }
