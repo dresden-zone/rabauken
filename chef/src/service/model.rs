@@ -49,7 +49,7 @@ impl CreateRecord for CreateARecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 
@@ -71,7 +71,7 @@ impl CreateRecord for CreateAAAARecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 
@@ -93,7 +93,7 @@ impl CreateRecord for CreateCnameRecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 
@@ -116,7 +116,7 @@ impl CreateRecord for CreateMxRecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 
@@ -138,7 +138,7 @@ impl CreateRecord for CreateNsRecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 
@@ -160,7 +160,7 @@ impl CreateRecord for CreateTxtRecord {
     self.name.clone()
   }
   fn get_ttl(&self) -> i64 {
-    self.ttl.clone()
+    self.ttl
   }
 }
 

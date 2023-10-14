@@ -5,11 +5,11 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
-use sea_orm::sea_query::Query;
-use sea_orm::DatabaseBackend::Postgres;
+
+
 use sea_orm::{
-  ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
-  QuerySelect, QueryTrait, Related, Select,
+  ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
+  QuerySelect, Related, Select,
 };
 use time::macros::datetime;
 use time::OffsetDateTime;
@@ -217,7 +217,7 @@ impl ZoneService {
     original_query_type: RecordType,
     next_name: LowerName,
     _search_type: RecordType,
-    lookup_options: LookupOptions,
+    _lookup_options: LookupOptions,
   ) -> Option<Vec<Arc<RecordSet>>> {
     let mut additionals: Vec<Arc<RecordSet>> = vec![];
 

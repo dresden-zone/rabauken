@@ -44,7 +44,7 @@ impl Authority for ZoneAuthority {
     todo!()
   }
 
-  async fn update(&self, update: &MessageRequest) -> UpdateResult<bool> {
+  async fn update(&self, _update: &MessageRequest) -> UpdateResult<bool> {
     Err(ResponseCode::NotImp)
   }
 
@@ -212,8 +212,8 @@ impl Authority for ZoneAuthority {
 
   async fn get_nsec_records(
     &self,
-    name: &LowerName,
-    lookup_options: LookupOptions,
+    _name: &LowerName,
+    _lookup_options: LookupOptions,
   ) -> Result<Self::Lookup, LookupError> {
     todo!()
   }

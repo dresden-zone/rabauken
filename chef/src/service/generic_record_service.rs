@@ -88,15 +88,13 @@ impl GenericRecordService {
       (Uuid, Uuid),
     >>::new_with_uuid(data.clone(), (record_uuid, zone_id)))
     .exec(&*self.db)
-    .await?
-    .last_insert_id;
+    .await?;
 
     Entity::insert(
       <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_uuid),
     )
     .exec(&*self.db)
-    .await?
-    .last_insert_id;
+    .await?;
 
     Ok(record_uuid)
   }
