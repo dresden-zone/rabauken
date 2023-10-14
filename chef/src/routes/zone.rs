@@ -6,9 +6,9 @@ use axum::Json;
 use serde::Serialize;
 use uuid::Uuid;
 
+use crate::routes::record_error;
 use entity::prelude::Zone;
 use entity::zone;
-use crate::routes::record_error;
 
 use crate::service::model::ZoneRequest;
 use crate::state::ChefState;
@@ -26,7 +26,7 @@ pub(crate) async fn list_zones(
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }
 
@@ -62,7 +62,7 @@ pub(crate) async fn modify_zone(
     Err(e) => {
       record_error(e);
       StatusCode::INTERNAL_SERVER_ERROR
-    },
+    }
   }
 }
 
@@ -75,7 +75,7 @@ pub(crate) async fn delete_zone(
     Err(e) => {
       record_error(e);
       StatusCode::INTERNAL_SERVER_ERROR
-    },
+    }
   }
 }
 
@@ -88,6 +88,6 @@ pub(crate) async fn get_zone(
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }

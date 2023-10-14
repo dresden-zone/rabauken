@@ -105,12 +105,12 @@ impl GenericRecordService {
     <<Entity as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType: From<uuid::Uuid>,
   {
     Ok(
-      Record::delete_by_id(record_id)
+      Entity::delete_by_id(record_id)
         .exec(&*self.db)
         .await?
         .rows_affected
         > 0
-        && Entity::delete_by_id(record_id)
+        && Record::delete_by_id(record_id)
           .exec(&*self.db)
           .await?
           .rows_affected

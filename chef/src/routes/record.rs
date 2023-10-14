@@ -10,9 +10,9 @@ use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use crate::routes::record_error;
 use entity::prelude::Record;
 use entity::record;
-use crate::routes::record_error;
 
 #[derive(Serialize)]
 pub(crate) struct IdResponse {
@@ -36,7 +36,7 @@ where
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }
 
@@ -61,7 +61,7 @@ where
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }
 
@@ -79,7 +79,7 @@ where
     Err(e) => {
       record_error(e);
       StatusCode::INTERNAL_SERVER_ERROR
-    },
+    }
   }
 }
 pub(crate) async fn modify_record<Entity, Model, ActiveModel, RequestData>(
@@ -105,7 +105,7 @@ where
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }
 
@@ -128,6 +128,6 @@ where
     Err(e) => {
       record_error(e);
       Err(StatusCode::INTERNAL_SERVER_ERROR)
-    },
+    }
   }
 }

@@ -123,24 +123,37 @@ pub(super) fn routes() -> Router<ChefState> {
       "/v1/zone/:zone_id/record/txt/:record_id",
       delete(delete_record::<RecordTxt>),
     )
-      .route(
-        "/v1/zone/:zone_id/record/a/:record_id",
-        put(modify_record::<RecordA, record_a::Model, record_a::ActiveModel, CreateARecord>),
-      )
-        .route(
-        "/v1/zone/:zone_id/record/aaaa/:record_id",
-        put(modify_record::<RecordAaaa, record_aaaa::Model, record_aaaa::ActiveModel, CreateAAAARecord>),
-      )      .route(
-        "/v1/zone/:zone_id/record/cname/:record_id",
-        put(modify_record::<RecordCname, record_cname::Model, record_cname::ActiveModel, CreateCnameRecord>),
-      )      .route(
-        "/v1/zone/:zone_id/record/mx/:record_id",
-        put(modify_record::<RecordMx, record_mx::Model, record_mx::ActiveModel, CreateMxRecord>),
-      )      .route(
-        "/v1/zone/:zone_id/record/ns/:record_id",
-        put(modify_record::<RecordNs, record_ns::Model, record_ns::ActiveModel, CreateNsRecord>),
-      )      .route(
-        "/v1/zone/:zone_id/record/txt/:record_id",
-        put(modify_record::<RecordTxt, record_txt::Model, record_txt::ActiveModel, CreateTxtRecord>),
-      )
+    .route(
+      "/v1/zone/:zone_id/record/a/:record_id",
+      put(modify_record::<RecordA, record_a::Model, record_a::ActiveModel, CreateARecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/aaaa/:record_id",
+      put(
+        modify_record::<RecordAaaa, record_aaaa::Model, record_aaaa::ActiveModel, CreateAAAARecord>,
+      ),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/cname/:record_id",
+      put(
+        modify_record::<
+          RecordCname,
+          record_cname::Model,
+          record_cname::ActiveModel,
+          CreateCnameRecord,
+        >,
+      ),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/mx/:record_id",
+      put(modify_record::<RecordMx, record_mx::Model, record_mx::ActiveModel, CreateMxRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/ns/:record_id",
+      put(modify_record::<RecordNs, record_ns::Model, record_ns::ActiveModel, CreateNsRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/txt/:record_id",
+      put(modify_record::<RecordTxt, record_txt::Model, record_txt::ActiveModel, CreateTxtRecord>),
+    )
 }
