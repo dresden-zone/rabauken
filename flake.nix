@@ -21,7 +21,21 @@
         latest.rustc
       ];
 
-      migration-package = pkgs.callPackage ./derivation.nix {
+      migration-package = pkgs.callPackage ./pkgs/migration.nix {
+        buildPackage = (naersk.lib.${system}.override {
+          cargo = toolchain;
+          rustc = toolchain;
+        }).buildPackage;
+      };
+
+      chef = pkgs.callPackage ./pkgs/chef.nix {
+        buildPackage = (naersk.lib.${system}.override {
+          cargo = toolchain;
+          rustc = toolchain;
+        }).buildPackage;
+      };
+
+      maid = pkgs.callPackage ./pkgs/maid.nix {
         buildPackage = (naersk.lib.${system}.override {
           cargo = toolchain;
           rustc = toolchain;
@@ -78,14 +92,15 @@
           BUILD_DIR=$(nix build ${self}#checks.${system}.test-sea-orm-cli-migration --no-link --print-out-paths)
           rm -rf entity/src/models/*
           cp -r $BUILD_DIR/out/* ./entity/src/models/
-          #mv ./entity/src/mod.rs ./entity/src/lib.rs
           chmod -R 644 ./entity/src/models/*
+          ${pkgs.git}/bin/git apply ${./entity/patch/fixed_time_crate_serde_configuration.patch}
           ${pkgs.cargo}/bin/cargo fmt
         '';
 
         run-migration-based = pkgs.writeScriptBin "run-migration" ''
           ${pkgs.sea-orm-cli}/bin/sea-orm-cli migration run --migration-dir ${self}/migrations-based
         '';
+        inherit chef maid;
       };
 
       devShells."x86_64-linux".default = pkgs.mkShell {

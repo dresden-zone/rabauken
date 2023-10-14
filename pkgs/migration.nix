@@ -3,7 +3,7 @@ buildPackage {
   pname = "dns-migration";
   version = "0.1.0";
 
-  src = ./.;
+  src = ../.;
   cargoBuildOptions = (x: x ++ [ "-p migration" ]);
   cargoSha256 = lib.fakeSha256;
 
