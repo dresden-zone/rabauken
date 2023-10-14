@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use clap::Parser;
 use sea_orm::prelude::Uuid;
-use sea_orm::Database;
+use sea_orm::{ConnectOptions, Database};
 use tokio::net::{TcpListener, UdpSocket};
 use tokio::select;
 use tokio::signal::ctrl_c;
