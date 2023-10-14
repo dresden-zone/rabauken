@@ -100,7 +100,7 @@ pub(super) fn routes() -> Router<ChefState> {
       post(create_record::<RecordTxt, _, _, CreateTxtRecord>),
     )
     .route(
-      "/v1/zone/:zone_id/record/a/",
+      "/v1/zone/:zone_id/record/a/:record_id",
       delete(delete_record::<RecordA>),
     )
     .route(
