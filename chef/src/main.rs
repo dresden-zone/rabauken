@@ -1,8 +1,9 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::Server;
 use clap::Parser;
-use sea_orm::Database;
+use sea_orm::{ConnectOptions, Database};
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::{info, Level};
@@ -40,7 +41,17 @@ async fn main() -> anyhow::Result<()> {
     "..."
   ));
 
-  let db = Arc::new(Database::connect(args.database_url).await?);
+  let mut db_options = ConnectOptions::new(args.database_url);
+  db_options
+    .max_connections(100)
+    .min_connections(5)
+    .connect_timeout(Duration::from_secs(8))
+    .acquire_timeout(Duration::from_secs(8))
+    .idle_timeout(Duration::from_secs(8))
+    .max_lifetime(Duration::from_secs(8))
+    .sqlx_logging(false);
+
+  let db = Arc::new(Database::connect(db_options).await?);
   Migrator::up(&*db, None).await?;
 
   // TODO: create services

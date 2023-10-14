@@ -43,7 +43,17 @@ async fn main() -> anyhow::Result<()> {
     "..."
   ));
 
-  let db = Arc::new(Database::connect(args.database_url).await?);
+  let mut db_options = ConnectOptions::new(args.database_url);
+  db_options
+    .max_connections(100)
+    .min_connections(5)
+    .connect_timeout(Duration::from_secs(8))
+    .acquire_timeout(Duration::from_secs(8))
+    .idle_timeout(Duration::from_secs(8))
+    .max_lifetime(Duration::from_secs(8))
+    .sqlx_logging(false);
+
+  let db = Arc::new(Database::connect(db_options).await?);
   Migrator::up(db.as_ref(), None).await?;
 
   let zone_service = Arc::new(ZoneService::new(db));
