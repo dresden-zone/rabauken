@@ -12,6 +12,7 @@ use uuid::Uuid;
 
 use entity::prelude::Record;
 use entity::record;
+use crate::routes::record_error;
 
 #[derive(Serialize)]
 pub(crate) struct IdResponse {
@@ -32,7 +33,10 @@ where
     Ok(values) => Ok(Json(Arc::new(
       values.into_iter().map(ApiRecord::<M>::merge).collect(),
     ))),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }
 
@@ -54,7 +58,10 @@ where
     .await
   {
     Ok(value) => Ok(Json(Arc::new(value))),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }
 
@@ -70,7 +77,10 @@ where
   match state.record_service.delete::<Entity>(record_id).await {
     Ok(true) => StatusCode::OK,
     Ok(false) => StatusCode::NOT_FOUND,
-    Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    Err(e) => {
+      record_error(e);
+      StatusCode::INTERNAL_SERVER_ERROR
+    },
   }
 }
 pub(crate) async fn modify_record<Entity, Model, ActiveModel, RequestData>(
@@ -94,7 +104,10 @@ where
     .await
   {
     Ok(value) => Ok(Json(Arc::new(ApiRecord::<Model>::merge(value)))),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }
 
@@ -115,6 +128,9 @@ where
   {
     Ok(Some(values)) => Ok(Json(Arc::new(ApiRecord::<M>::merge(values)))),
     Ok(None) => Err(StatusCode::NOT_FOUND),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }

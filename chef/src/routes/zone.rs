@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 use entity::prelude::Zone;
 use entity::zone;
+use crate::routes::record_error;
 
 use crate::service::model::ZoneRequest;
 use crate::state::ChefState;
@@ -22,7 +23,10 @@ pub(crate) async fn list_zones(
 ) -> Result<Json<Arc<Vec<zone::Model>>>, StatusCode> {
   match state.database.all::<Zone>().await {
     Ok(value) => Ok(Json(Arc::new(value))),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }
 
@@ -37,7 +41,10 @@ pub(crate) async fn create_zone(
     .await
   {
     Ok(_) => Ok(Json(Arc::new(IdResponse { id }))),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    }
   }
 }
 
@@ -52,7 +59,10 @@ pub(crate) async fn modify_zone(
     .await
   {
     Ok(_) => StatusCode::OK,
-    Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    Err(e) => {
+      record_error(e);
+      StatusCode::INTERNAL_SERVER_ERROR
+    },
   }
 }
 
@@ -62,7 +72,10 @@ pub(crate) async fn delete_zone(
 ) -> StatusCode {
   match state.database.delete::<Zone>(zone_id).await {
     Ok(_) => StatusCode::OK,
-    Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    Err(e) => {
+      record_error(e);
+      StatusCode::INTERNAL_SERVER_ERROR
+    },
   }
 }
 
@@ -72,6 +85,9 @@ pub(crate) async fn get_zone(
 ) -> Result<Json<Arc<zone::Model>>, StatusCode> {
   match state.database.find::<Zone>(zone_id).await {
     Ok(value) => value.ok_or(StatusCode::NOT_FOUND).map(Arc::new).map(Json),
-    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+    Err(e) => {
+      record_error(e);
+      Err(StatusCode::INTERNAL_SERVER_ERROR)
+    },
   }
 }
