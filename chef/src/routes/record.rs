@@ -67,8 +67,7 @@ where
 
 pub(crate) async fn delete_record<Entity>(
   State(mut state): State<ChefState>,
-  Path(_): Path<Uuid>,
-  Path(record_id): Path<Uuid>,
+  Path((_, record_id)): Path<(Uuid, Uuid)>,
 ) -> StatusCode
 where
   Entity: EntityTrait,
@@ -85,8 +84,7 @@ where
 }
 pub(crate) async fn modify_record<Entity, Model, ActiveModel, RequestData>(
   State(mut state): State<ChefState>,
-  Path(zone_id): Path<Uuid>,
-  Path(record_id): Path<Uuid>,
+  Path((zone_id, record_id)): Path<(Uuid, Uuid)>,
   Json(payload): Json<RequestData>,
 ) -> Result<Json<Arc<ApiRecord<Model>>>, StatusCode>
 where
@@ -113,8 +111,7 @@ where
 
 pub(crate) async fn get_record<E, M>(
   State(mut state): State<ChefState>,
-  Path(zone_id): Path<Uuid>,
-  Path(record_id): Path<Uuid>,
+  Path((zone_id, record_id)): Path<(Uuid, Uuid)>,
 ) -> Result<Json<Arc<ApiRecord<M>>>, StatusCode>
 where
   E: EntityTrait<Model = M>,
