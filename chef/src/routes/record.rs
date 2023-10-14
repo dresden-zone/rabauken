@@ -2,15 +2,17 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::{debug_handler, Json};
 
-use sea_orm::{EntityTrait, Related};
+use sea_orm::{ActiveModelTrait, EntityTrait, Related};
+use sea_query::Tokenizer;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::routes::record_error;
-use crate::service::model::ZoneRequest;
-use crate::state::ChefState;
 use crate::service::merge::{ApiRecord, MergeObject, RecordType};
+use crate::service::model::CreateARecord;
+use crate::service::model::{ToModel, ZoneRequest};
+use crate::state::ChefState;
 
 use entity::prelude::{
   Record, RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt, Zone,
@@ -40,12 +42,26 @@ where
   }
 }
 
-pub(crate) async fn create_record(
-  State(_state): State<ChefState>,
-  Json(_payload): Json<ZoneRequest>,
-  Path(_record_type): Path<RecordType>,
-) -> Result<Json<Arc<IdResponse>>, StatusCode> {
-  Err(StatusCode::NOT_IMPLEMENTED)
+pub(crate) async fn create_record<Entity, Model, ActiveModel, RequestData>(
+  State(mut state): State<ChefState>,
+  Path(zone_id): Path<Uuid>,
+  Json(payload): Json<RequestData>,
+) -> Result<Json<Arc<Uuid>>, StatusCode>
+where
+  Entity: EntityTrait<Model = Model>,
+  record::Entity: Related<Entity>,
+  ActiveModel: ActiveModelTrait<Entity = Entity>,
+  RequestData:
+    ToModel<Entity, ActiveModel, Uuid> + ToModel<Record, record::ActiveModel, (Uuid, Uuid)> + Clone,
+{
+  match state
+    .record_service
+    .create::<Entity, Model, ActiveModel, RequestData>(zone_id, payload)
+    .await
+  {
+    Ok(value) => Ok(Json(Arc::new(value))),
+    Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
+  }
 }
 
 pub(crate) async fn modify_record(

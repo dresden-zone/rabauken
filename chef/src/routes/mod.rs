@@ -7,13 +7,17 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::routes::zone::{create_zone, delete_zone, get_zone, list_zones, modify_zone};
+use crate::service::model::{
+  CreateAAAARecord, CreateARecord, CreateCnameRecord, CreateMxRecord, CreateNsRecord,
+  CreateTxtRecord,
+};
 use crate::state::ChefState;
 
+mod model;
 mod record;
 mod zone;
-mod model;
 
-use crate::routes::record::{get_record, list_record};
+use crate::routes::record::{create_record, get_record, list_record};
 use entity::prelude::{RecordA, RecordAaaa, RecordCname, RecordMx, RecordNs, RecordTxt};
 
 pub fn record_error(error: anyhow::Error) {
@@ -74,5 +78,29 @@ pub(super) fn routes() -> Router<ChefState> {
     .route(
       "/v1/zone/:zone_id/record/txt/:record_id",
       get(get_record::<RecordTxt, entity::record_txt::Model>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/a/",
+      post(create_record::<RecordA, _, _, CreateARecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/aaaa/",
+      post(create_record::<RecordAaaa, _, _, CreateAAAARecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/cname/",
+      post(create_record::<RecordCname, _, _, CreateCnameRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/mx/",
+      post(create_record::<RecordMx, _, _, CreateMxRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/ns/",
+      post(create_record::<RecordNs, _, _, CreateNsRecord>),
+    )
+    .route(
+      "/v1/zone/:zone_id/record/txt/",
+      post(create_record::<RecordTxt, _, _, CreateTxtRecord>),
     )
 }

@@ -2,6 +2,7 @@ use crate::service::model::ToModel;
 use sea_orm::entity::EntityTrait;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, IntoActiveModel, PrimaryKeyTrait};
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub(crate) struct GenericDatabaseService {
@@ -26,7 +27,7 @@ impl GenericDatabaseService {
   pub(crate) async fn create<A: EntityTrait, B: ActiveModelTrait<Entity = A>>(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: impl ToModel<A, B>,
+    data: impl ToModel<A, B, <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType>,
   ) -> anyhow::Result<<<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType> {
     Ok(
       A::insert(data.new_with_uuid(id))
@@ -48,7 +49,7 @@ impl GenericDatabaseService {
   >(
     &mut self,
     id: <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType,
-    data: impl ToModel<A, B>,
+    data: impl ToModel<A, B, <<A as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType>,
   ) -> anyhow::Result<A::Model>
   where
     <A as EntityTrait>::Model: IntoActiveModel<B>,

@@ -2,6 +2,7 @@ use crate::service::model::ToModel;
 use entity::prelude::Record;
 use entity::prelude::Zone;
 use entity::zone;
+use entity::zone::Model;
 use entity::{record, IntoRecord};
 use sea_orm::entity::EntityTrait;
 use sea_orm::QueryFilter;
@@ -10,7 +11,6 @@ use sea_orm::{ActiveModelTrait, DatabaseConnection, PrimaryKeyTrait, Select};
 use sea_query::Expr;
 use std::sync::Arc;
 use uuid::Uuid;
-use entity::zone::Model;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -70,23 +70,37 @@ impl GenericRecordService {
     )
   }
 
-  pub(crate) async fn create<E, M, A, D>(
+  pub(crate) async fn create<Entity, Model, ActiveModel, RequestData>(
     &mut self,
     zone_id: Uuid,
-    data: D,
-  ) -> anyhow::Result<<<E as EntityTrait>::PrimaryKey as PrimaryKeyTrait>::ValueType>
+    data: RequestData,
+  ) -> anyhow::Result<Uuid>
   where
-    E: EntityTrait<Model = M>,
-    A: ActiveModelTrait<Entity = E>,
-    record::Entity: Related<E>,
-    D: ToModel<E, A>
+    Entity: EntityTrait<Model = Model>,
+    ActiveModel: ActiveModelTrait<Entity = Entity>,
+    record::Entity: Related<Entity>,
+    RequestData: ToModel<Entity, ActiveModel, Uuid>
+      + ToModel<Record, entity::record::ActiveModel, (Uuid, Uuid)>
+      + Clone,
   {
-    Ok(
-      Record::insert(data.new_with_uuid(zone_id))
-        .exec(&*self.db)
-        .await?
-        .last_insert_id,
+    let record_uuid = Uuid::new_v4();
+    Record::insert(<RequestData as ToModel<
+      Record,
+      record::ActiveModel,
+      (Uuid, Uuid),
+    >>::new_with_uuid(data.clone(), (record_uuid, zone_id)))
+    .exec(&*self.db)
+    .await?
+    .last_insert_id;
+
+    Entity::insert(
+      <RequestData as ToModel<Entity, ActiveModel, Uuid>>::new_with_uuid(data, record_uuid),
     )
+    .exec(&*self.db)
+    .await?
+    .last_insert_id;
+
+    Ok(record_uuid)
   }
 
   /*
