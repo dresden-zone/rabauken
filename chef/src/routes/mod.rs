@@ -125,22 +125,22 @@ pub(super) fn routes() -> Router<ChefState> {
     )
       .route(
         "/v1/zone/:zone_id/record/a/:record_id",
-        post(modify_record::<RecordA, record_a::Model, record_a::ActiveModel, CreateARecord>),
+        put(modify_record::<RecordA, record_a::Model, record_a::ActiveModel, CreateARecord>),
       )
         .route(
         "/v1/zone/:zone_id/record/aaaa/:record_id",
-        post(modify_record::<RecordAaaa, record_aaaa::Model, record_aaaa::ActiveModel, CreateAAAARecord>),
+        put(modify_record::<RecordAaaa, record_aaaa::Model, record_aaaa::ActiveModel, CreateAAAARecord>),
       )      .route(
         "/v1/zone/:zone_id/record/cname/:record_id",
-        post(modify_record::<RecordCname, record_cname::Model, record_cname::ActiveModel, CreateCnameRecord>),
+        put(modify_record::<RecordCname, record_cname::Model, record_cname::ActiveModel, CreateCnameRecord>),
       )      .route(
         "/v1/zone/:zone_id/record/mx/:record_id",
-        post(modify_record::<RecordMx, record_mx::Model, record_mx::ActiveModel, CreateMxRecord>),
+        put(modify_record::<RecordMx, record_mx::Model, record_mx::ActiveModel, CreateMxRecord>),
       )      .route(
         "/v1/zone/:zone_id/record/ns/:record_id",
-        post(modify_record::<RecordNs, record_ns::Model, record_ns::ActiveModel, CreateNsRecord>),
+        put(modify_record::<RecordNs, record_ns::Model, record_ns::ActiveModel, CreateNsRecord>),
       )      .route(
         "/v1/zone/:zone_id/record/txt/:record_id",
-        post(modify_record::<RecordTxt, record_txt::Model, record_txt::ActiveModel, CreateTxtRecord>),
+        put(modify_record::<RecordTxt, record_txt::Model, record_txt::ActiveModel, CreateTxtRecord>),
       )
 }
