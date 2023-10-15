@@ -112,7 +112,7 @@ in
       isNormalUser = false;
       isSystemUser = true;
       group = cfg.group;
-      uid = 1501;
+      uid = 1502;
     };
   };
 }
