@@ -11,6 +11,7 @@ use hickory_server::proto::op::ResponseCode;
 use hickory_server::proto::rr::domain::Label;
 use hickory_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
 use hickory_server::server::RequestInfo;
+use url::quirks::origin;
 
 use crate::service::ZoneService;
 
@@ -199,9 +200,15 @@ impl Authority for ZoneAuthority {
         Ok(match start_soa {
           l @ AuthLookup::Empty => l,
           start_soa => AuthLookup::AXFR {
-            start_soa: start_soa.unwrap_records(),
+            start_soa: match start_soa {
+              AuthLookup::SOA(soa) => soa,
+              _ => panic!("abc"),
+            },
             records: records.unwrap_records(),
-            end_soa: end_soa.unwrap_records(),
+            end_soa:  match end_soa {
+              AuthLookup::SOA(soa) => soa,
+              _ => panic!("abc"),
+            },
           },
         })
       }
