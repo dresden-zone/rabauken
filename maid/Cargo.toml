@@ -8,8 +8,8 @@ sea-orm = { version = "0.12", default-features = false, features = ["sqlx-postgr
 tokio = { version = "1.33", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
 tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
-trust-dns-server = { version = "0.23", default-features = false }
-entity = { path = "../entity", features = ["trust-dns-proto"] }
+hickory-server = { version = "0.24", default-features = false }
+entity = { path = "../entity", features = ["hickory-proto"] }
 clap = { version = "4.4", features = ["derive", "env"] }
 url = { version = "2.4", default-features = false }
 migration = { path = "../migration" }

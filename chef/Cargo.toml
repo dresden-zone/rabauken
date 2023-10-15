@@ -16,5 +16,5 @@ clap = { version = "4.4", features = ["derive", "env"] }
 time = { version = "0.3", default-features = false }
 url = { version = "2.4", default-features = false }
 migration = { path = "../migration" }
-entity = { path = "../entity", features = ["trust-dns-proto"]}
+entity = { path = "../entity" }
 anyhow = "1.0"

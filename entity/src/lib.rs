@@ -1,12 +1,12 @@
-#[cfg(feature = "trust-dns-proto")]
+#[cfg(feature = "hickory-proto")]
 mod error;
-#[cfg(feature = "trust-dns-proto")]
+#[cfg(feature = "hickory-proto")]
 mod try_from;
 
 mod models;
 
-#[cfg(feature = "trust-dns-proto")]
+#[cfg(feature = "hickory-proto")]
 pub use error::EntityError;
 pub use models::*;
-#[cfg(feature = "trust-dns-proto")]
+#[cfg(feature = "hickory-proto")]
 pub use try_from::IntoRecord;

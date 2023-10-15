@@ -1,4 +1,4 @@
-use trust_dns_proto::rr::{rdata, Name, RData};
+use hickory_proto::rr::{rdata, Name, RData};
 
 use crate::error::EntityError;
 use crate::{record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt};

@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub id: Uuid,
+  #[serde(with = "time::serde::iso8601")]
   pub created: TimeDateTimeWithTimeZone,
+  #[serde(with = "time::serde::iso8601")]
   pub updated: TimeDateTimeWithTimeZone,
   pub name: String,
   pub verified: bool,

@@ -10,9 +10,9 @@ use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
-use trust_dns_server::authority::Catalog;
-use trust_dns_server::proto::rr::LowerName;
-use trust_dns_server::ServerFuture;
+use hickory_server::authority::Catalog;
+use hickory_server::proto::rr::LowerName;
+use hickory_server::ServerFuture;
 
 use migration::{Migrator, MigratorTrait};
 

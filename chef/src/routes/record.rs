@@ -6,7 +6,6 @@ use crate::service::merge::{ApiRecord, MergeObject};
 use crate::service::model::ToModel;
 use crate::state::ChefState;
 use sea_orm::{ActiveModelBehavior, ActiveModelTrait, EntityTrait, PrimaryKeyTrait, Related};
-use sea_query::BinOper::Mod;
 use serde::Serialize;
 use std::sync::Arc;
 use uuid::Uuid;

@@ -11,9 +11,9 @@ use sea_orm::{
 };
 use time::macros::datetime;
 use time::OffsetDateTime;
-use trust_dns_server::authority::LookupOptions;
-use trust_dns_server::proto::rr::domain::Label;
-use trust_dns_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
+use hickory_server::authority::LookupOptions;
+use hickory_server::proto::rr::domain::Label;
+use hickory_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
 
 use entity::IntoRecord;
 use entity::{record, record_a, record_aaaa, record_cname, record_mx, record_ns, record_txt, zone};

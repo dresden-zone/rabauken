@@ -3,14 +3,14 @@ use std::sync::Arc;
 
 use sea_orm::prelude::Uuid;
 use tokio::try_join;
-use trust_dns_server::authority::{
+use hickory_server::authority::{
   AnyRecords, AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, LookupResult,
   MessageRequest, UpdateResult, ZoneType,
 };
-use trust_dns_server::proto::op::ResponseCode;
-use trust_dns_server::proto::rr::domain::Label;
-use trust_dns_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
-use trust_dns_server::server::RequestInfo;
+use hickory_server::proto::op::ResponseCode;
+use hickory_server::proto::rr::domain::Label;
+use hickory_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
+use hickory_server::server::RequestInfo;
 
 use crate::service::ZoneService;
 
