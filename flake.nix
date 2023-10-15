@@ -106,5 +106,15 @@
       devShells."x86_64-linux".default = pkgs.mkShell {
         nativeBuildInputs = with pkgs; [ pkg-config postgresql_14 openssl sea-orm-cli ];
       };
+
+      overlays.default = final: prev: {
+        inherit (self.packages.${prev.system})
+          chef maid;
+      };
+
+      nixosModules = {
+        maid = import ./nixos-module/maid.nix;
+        chef = import ./nixos-module/chef.nix;
+      };
     };
 }
