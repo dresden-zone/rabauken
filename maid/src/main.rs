@@ -3,6 +3,9 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use clap::Parser;
+use hickory_server::authority::Catalog;
+use hickory_server::proto::rr::LowerName;
+use hickory_server::ServerFuture;
 use sea_orm::prelude::Uuid;
 use sea_orm::{ConnectOptions, Database};
 use tokio::net::{TcpListener, UdpSocket};
@@ -10,9 +13,6 @@ use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
-use hickory_server::authority::Catalog;
-use hickory_server::proto::rr::LowerName;
-use hickory_server::ServerFuture;
 
 use migration::{Migrator, MigratorTrait};
 

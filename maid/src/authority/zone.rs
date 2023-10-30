@@ -1,8 +1,6 @@
 use std::fmt::Write;
 use std::sync::Arc;
 
-use sea_orm::prelude::Uuid;
-use tokio::try_join;
 use hickory_server::authority::{
   AnyRecords, AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, LookupResult,
   MessageRequest, UpdateResult, ZoneType,
@@ -11,7 +9,8 @@ use hickory_server::proto::op::ResponseCode;
 use hickory_server::proto::rr::domain::Label;
 use hickory_server::proto::rr::{LowerName, Name, RData, Record, RecordSet, RecordType};
 use hickory_server::server::RequestInfo;
-use url::quirks::origin;
+use sea_orm::prelude::Uuid;
+use tokio::try_join;
 
 use crate::service::ZoneService;
 
@@ -205,7 +204,7 @@ impl Authority for ZoneAuthority {
               _ => panic!("abc"),
             },
             records: records.unwrap_records(),
-            end_soa:  match end_soa {
+            end_soa: match end_soa {
               AuthLookup::SOA(soa) => soa,
               _ => panic!("abc"),
             },
