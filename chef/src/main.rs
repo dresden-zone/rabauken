@@ -67,14 +67,14 @@ async fn main() -> anyhow::Result<()> {
   info!("Listening on http://{}...", args.listen_addr);
 
   select! {
-   result = server => {
-     result?;
-     info!("Socket closed, quitting...");
-   },
-  result = shutdown_signal() => {
-     result?;
-     info!("Termination signal received, quitting...");
-   }
+    result = server => {
+      result?;
+      info!("Socket closed, quitting...");
+    },
+    result = shutdown_signal() => {
+      result?;
+      info!("Termination signal received, quitting...");
+    }
   }
 
   Ok(())

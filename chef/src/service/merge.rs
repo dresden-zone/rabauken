@@ -8,15 +8,15 @@ pub(crate) enum RecordType {
   #[serde(rename = "a")]
   A,
   #[serde(rename = "aaaa")]
-  AAAA,
+  Aaaa,
   #[serde(rename = "cname")]
-  CNAME,
+  Cname,
   #[serde(rename = "mx")]
-  MX,
+  Mx,
   #[serde(rename = "ns")]
-  NS,
+  Ns,
   #[serde(rename = "txt")]
-  TXT,
+  Txt,
 }
 
 #[derive(Serialize)]
@@ -47,7 +47,7 @@ impl MergeObject<RecordAaaa, entity::record_aaaa::Model> for ApiRecord<entity::r
     value: (record::Model, Option<entity::record_aaaa::Model>),
   ) -> ApiRecord<entity::record_aaaa::Model> {
     ApiRecord::<entity::record_aaaa::Model> {
-      record_type: RecordType::AAAA,
+      record_type: RecordType::Aaaa,
       record: value.0,
       value: value.1.unwrap(),
     }
@@ -61,7 +61,7 @@ impl MergeObject<RecordCname, entity::record_cname::Model>
     value: (record::Model, Option<entity::record_cname::Model>),
   ) -> ApiRecord<entity::record_cname::Model> {
     ApiRecord::<entity::record_cname::Model> {
-      record_type: RecordType::CNAME,
+      record_type: RecordType::Cname,
       record: value.0,
       value: value.1.unwrap(),
     }
@@ -73,7 +73,7 @@ impl MergeObject<RecordMx, entity::record_mx::Model> for ApiRecord<entity::recor
     value: (record::Model, Option<entity::record_mx::Model>),
   ) -> ApiRecord<entity::record_mx::Model> {
     ApiRecord::<entity::record_mx::Model> {
-      record_type: RecordType::MX,
+      record_type: RecordType::Mx,
       record: value.0,
       value: value.1.unwrap(),
     }
@@ -85,7 +85,7 @@ impl MergeObject<RecordNs, entity::record_ns::Model> for ApiRecord<entity::recor
     value: (record::Model, Option<entity::record_ns::Model>),
   ) -> ApiRecord<entity::record_ns::Model> {
     ApiRecord::<entity::record_ns::Model> {
-      record_type: RecordType::NS,
+      record_type: RecordType::Ns,
       record: value.0,
       value: value.1.unwrap(),
     }
@@ -97,7 +97,7 @@ impl MergeObject<RecordTxt, entity::record_txt::Model> for ApiRecord<entity::rec
     value: (record::Model, Option<entity::record_txt::Model>),
   ) -> ApiRecord<entity::record_txt::Model> {
     ApiRecord::<entity::record_txt::Model> {
-      record_type: RecordType::NS,
+      record_type: RecordType::Ns,
       record: value.0,
       value: value.1.unwrap(),
     }
