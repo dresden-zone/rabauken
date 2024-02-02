@@ -5,16 +5,16 @@ edition = "2021"
 
 [dependencies]
 sea-orm = { version = "0.12", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
-tokio = { version = "1.34", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
-axum = { version = "0.6", default-features = false, features = ["tokio", "http1", "json", "macros"] }
+tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
+axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "json", "macros"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
 tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
-uuid = { version = "1.5", default-features = false, features = ["v4", "serde"] }
+uuid = { version = "1.7", default-features = false, features = ["v4", "serde"] }
 serde = { version = "1.0", features = ["derive"] }
 sea-query = { version = "0.30", default-features = false }
 clap = { version = "4.4", features = ["derive", "env"] }
 time = { version = "0.3", default-features = false }
-url = { version = "2.4", default-features = false }
+url = { version = "2.5", default-features = false }
 migration = { path = "../migration" }
 entity = { path = "../entity" }
 anyhow = "1.0"

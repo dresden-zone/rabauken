@@ -1,9 +1,10 @@
+use std::future::IntoFuture;
 use std::sync::Arc;
 use std::time::Duration;
 
-use axum::Server;
 use clap::Parser;
 use sea_orm::{ConnectOptions, Database};
+use tokio::net::TcpListener;
 use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::{info, Level};
@@ -62,12 +63,12 @@ async fn main() -> anyhow::Result<()> {
   };
 
   let router = routes().with_state(state);
-  let server = Server::bind(&args.listen_addr).serve(router.into_make_service());
+  let listener = TcpListener::bind(&args.listen_addr).await?;
 
   info!("Listening on http://{}...", args.listen_addr);
 
   select! {
-    result = server => {
+    result = axum::serve(listener, router).into_future() => {
       result?;
       info!("Socket closed, quitting...");
     },
