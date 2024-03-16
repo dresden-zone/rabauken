@@ -2,7 +2,9 @@
 resolver = "2"
 members = [
   "chef",
-  "maid"
+  "maid",
+  "lib/entity",
+  "lib/migration"
 ]
 
 [profile.release]
