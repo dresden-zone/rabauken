@@ -91,10 +91,10 @@
         update-schema = pkgs.writeScriptBin "update-schema" ''
           nix build ${self}#checks.${system}.test-sea-orm-cli-migration
           BUILD_DIR=$(nix build ${self}#checks.${system}.test-sea-orm-cli-migration --no-link --print-out-paths)
-          rm -rf entity/src/models/*
-          cp -r $BUILD_DIR/out/* ./entity/src/models/
-          chmod -R 644 ./entity/src/models/*
-          #${pkgs.git}/bin/git apply ${./entity/patch/fixed_time_crate_serde_configuration.patch} --verbose
+          rm -rf ./lib/entity/src/models/*
+          cp -r $BUILD_DIR/out/* ./lib/entity/src/models/
+          chmod -R 644 ./lib/entity/src/models/*
+          #${pkgs.git}/bin/git apply ${./lib/entity/patch/fixed_time_crate_serde_configuration.patch} --verbose
           ${pkgs.cargo}/bin/cargo fmt
         '';
 
