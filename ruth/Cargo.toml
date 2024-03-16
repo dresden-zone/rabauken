@@ -1,0 +1,22 @@
+[package]
+name = "ruth"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sea-orm = { version = "1.0.0-rc.2", default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "with-uuid", "with-time"] }
+clap = { version = "4.5", default-features = false, features = ["std", "color", "help", "usage", "error-context", "suggestions", "derive", "env"] }
+tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread", "net", "signal", "fs"] }
+argon2 = { version = "0.5.3", default-features = false, features = ["password-hash", "std"] }
+tracing = { version = "0.1", default-features = false, features = ["release_max_level_debug"] }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
+axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "json"] }
+time = { version = "0.3", default-features = false, features = ["serde", "formatting"] }
+axum-extra = { version = "0.9", default-features = false, features = ["cookie"] }
+uuid = { version = "1.7", default-features = false, features = ["v4", "serde"] }
+tower-http = { version = "0.5", default-features = false, features = ["trace"] }
+anyhow = { version = "1.0", default-features = false, features = ["std"] }
+serde = { version = "1.0.197", features = ["derive"] }
+url = { version = "2.5", default-features = false }
+migration = { path = "../lib/migration" }
+entity = { path = "../lib/entity" }

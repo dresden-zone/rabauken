@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { version = "0.12", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
+sea-orm = { version = "1.0.0-rc.2", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
 tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
 axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "json", "macros"] }
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }

@@ -1,8 +1,7 @@
-diff --git a/entity/src/models/record.rs b/entity/src/models/record.rs
-index 6c0150d..ebd314e 100644
---- a/entity/src/models/record.rs
-+++ b/entity/src/models/record.rs
-@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
+diff --git a/lib/entity/src/models/record.rs b/lib/entity/src/models/record.rs
+--- a/lib/entity/src/models/record.rs
++++ b/lib/entity/src/models/record.rs
+@@ -8,7 +8,9 @@
  pub struct Model {
    #[sea_orm(primary_key, auto_increment = false)]
    pub id: Uuid,
@@ -12,11 +11,10 @@ index 6c0150d..ebd314e 100644
    pub updated: TimeDateTimeWithTimeZone,
    pub name: String,
    pub zone_id: Uuid,
-diff --git a/entity/src/models/zone.rs b/entity/src/models/zone.rs
-index bc00e87..04625d6 100644
---- a/entity/src/models/zone.rs
-+++ b/entity/src/models/zone.rs
-@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
+diff --git a/lib/entity/src/models/zone.rs b/lib/entity/src/models/zone.rs
+--- a/lib/entity/src/models/zone.rs
++++ b/lib/entity/src/models/zone.rs
+@@ -8,7 +8,9 @@
  pub struct Model {
    #[sea_orm(primary_key, auto_increment = false)]
    pub id: Uuid,
@@ -26,3 +24,29 @@ index bc00e87..04625d6 100644
    pub updated: TimeDateTimeWithTimeZone,
    pub name: String,
    pub verified: bool,
+diff --git a/lib/entity/src/models/user.rs b/lib/entity/src/models/user.rs
+--- a/lib/entity/src/models/user.rs
++++ b/lib/entity/src/models/user.rs
+@@ -8,7 +8,9 @@
+ pub struct Model {
+   #[sea_orm(primary_key, auto_increment = false)]
+   pub id: Uuid,
++  #[serde(with = "time::serde::iso8601")]
+   pub created: TimeDateTimeWithTimeZone,
++  #[serde(with = "time::serde::iso8601")]
+   pub updated: TimeDateTimeWithTimeZone,
+   #[sea_orm(unique)]
+   pub name: String,
+diff --git a/lib/entity/src/models/password.rs b/lib/entity/src/models/password.rs
+--- a/lib/entity/src/models/password.rs
++++ b/lib/entity/src/models/password.rs
+@@ -8,7 +8,9 @@
+ pub struct Model {
+   #[sea_orm(primary_key, auto_increment = false)]
+   pub id: Uuid,
++  #[serde(with = "time::serde::iso8601")]
+   pub created: TimeDateTimeWithTimeZone,
++  #[serde(with = "time::serde::iso8601")]
+   pub updated: TimeDateTimeWithTimeZone,
+   pub hash: String,
+ }

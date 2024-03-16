@@ -9,5 +9,5 @@ name = "migration"
 path = "src/lib.rs"
 
 [dependencies]
-sea-orm-migration = { version = "0.12", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-time", "with-uuid", "cli"] }
+sea-orm-migration = { version = "1.0.0-rc.2", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-time", "with-uuid", "cli"] }
 tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread"] }

@@ -4,7 +4,8 @@ members = [
   "chef",
   "maid",
   "lib/entity",
-  "lib/migration"
+  "lib/migration",
+  "ruth"
 ]
 
 [profile.release]
