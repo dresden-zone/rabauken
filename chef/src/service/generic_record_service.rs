@@ -1,14 +1,17 @@
-use crate::service::model::ToModel;
-use entity::prelude::Record;
-use entity::record;
-use entity::zone;
+use std::sync::Arc;
+
 use sea_orm::entity::EntityTrait;
+use sea_orm::ColumnTrait;
 use sea_orm::{ActiveModelBehavior, Related};
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Select};
 use sea_orm::{PrimaryKeyTrait, QueryFilter};
-use sea_query::Expr;
-use std::sync::Arc;
 use uuid::Uuid;
+
+use entity::prelude::Record;
+use entity::record;
+use entity::zone;
+
+use crate::service::model::ToModel;
 
 #[derive(Clone)]
 pub(crate) struct GenericRecordService {
@@ -30,9 +33,9 @@ impl GenericRecordService {
   {
     fn call(zone_id: Uuid) -> Select<record::Entity> {
       record::Entity::find().inner_join(zone::Entity).filter(
-        Expr::col((zone::Entity, zone::Column::Id))
-          .eq(Expr::val(zone_id))
-          .and(Expr::col((zone::Entity, zone::Column::Verified)).eq(Expr::val(true))),
+        zone::Column::Id
+          .eq(zone_id)
+          .and(zone::Column::Verified.eq(true)),
       )
     }
 
@@ -56,7 +59,7 @@ impl GenericRecordService {
     fn call(zone_id: Uuid, record_id: Uuid) -> Select<record::Entity> {
       record::Entity::find_by_id(record_id)
         .inner_join(zone::Entity)
-        .filter(Expr::col((zone::Entity, zone::Column::Id)).eq(Expr::val(zone_id)))
+        .filter(zone::Column::Id.eq(zone_id))
     }
 
     Ok(

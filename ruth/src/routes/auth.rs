@@ -3,10 +3,10 @@ use axum::http::StatusCode;
 use axum::Json;
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use axum_extra::extract::CookieJar;
+use entity::user;
 use serde::{Deserialize, Serialize};
 use time::Duration;
 use tracing::error;
-use entity::user;
 
 use crate::ctx::Context;
 use crate::session::Session;

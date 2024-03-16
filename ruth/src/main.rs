@@ -2,6 +2,7 @@ use std::future::IntoFuture;
 use std::sync::Arc;
 
 use clap::Parser;
+use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
 use tokio::net::TcpListener;
 use tokio::select;
@@ -9,7 +10,6 @@ use tower_http::trace::TraceLayer;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 use url::Url;
-use migration::{Migrator, MigratorTrait};
 
 use crate::args::Args;
 use crate::ctx::Context;
@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
 
   info!("connected to db");
 
-  Migrator::up(db.as_ref(), None).await?;
+  Migrator::up(&db, None).await?;
 
   let listener = TcpListener::bind(args.listen_addr).await?;
   info!("listening at http://{}...", args.listen_addr);

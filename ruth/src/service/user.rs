@@ -1,12 +1,12 @@
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::{Error, SaltString};
 use argon2::{Argon2, PasswordHash, PasswordHasher};
+use entity::prelude::{Password, User};
+use entity::{password, user};
 use sea_orm::{
   ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
 };
 use uuid::Uuid;
-use entity::prelude::{Password, User};
-use entity::{password, user};
 
 pub(crate) struct UserService {
   db: DatabaseConnection,
