@@ -4,15 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { version = "1.0.0-rc.2", default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls"] }
-tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
-tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
+sea-orm = { workspace = true, default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls"] }
+tokio = { workspace = true, default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
+tracing-subscriber = { workspace = true, default-features = false, features = ["fmt", "ansi"] }
+tracing = { workspace = true, default-features = false, features = ["release_max_level_info"] }
 hickory-server = { version = "0.24", default-features = false }
-clap = { version = "4.4", features = ["derive", "env"] }
-url = { version = "2.5", default-features = false }
+clap = { workspace = true, features = ["derive", "env"] }
+url = { workspace = true, default-features = false }
 migration = { path = "../lib/migration" }
 entity = { path = "../lib/entity", features = ["hickory-proto"] }
-async-trait = "0.1"
-anyhow = "1.0"
-time = "0.3"
+async-trait = { workspace = true }
+anyhow = { workspace = true }
+time = { workspace = true }

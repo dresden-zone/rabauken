@@ -5,11 +5,11 @@ use axum_extra::extract::cookie::{Cookie, SameSite};
 use axum_extra::extract::CookieJar;
 use entity::user;
 use serde::{Deserialize, Serialize};
+use session::Session;
 use time::Duration;
 use tracing::error;
 
 use crate::ctx::Context;
-use crate::session::Session;
 
 #[derive(Deserialize)]
 pub(super) struct RegisterRequest {
@@ -41,7 +41,7 @@ pub(super) async fn me(
 ) -> Result<Json<user::Model>, StatusCode> {
   ctx
     .user_service
-    .by_id(session.user_id().await)
+    .by_id(session.user_id)
     .await
     .map(|user| Json(user.expect("User can not be null")))
     .map_err(|err| {

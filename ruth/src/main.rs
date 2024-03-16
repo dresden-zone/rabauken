@@ -2,7 +2,6 @@ use std::future::IntoFuture;
 use std::sync::Arc;
 
 use clap::Parser;
-use migration::{Migrator, MigratorTrait};
 use sea_orm::Database;
 use tokio::net::TcpListener;
 use tokio::select;
@@ -11,18 +10,18 @@ use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 use url::Url;
 
+use migration::{Migrator, MigratorTrait};
+
 use crate::args::Args;
 use crate::ctx::Context;
 use crate::routes::router;
 use crate::service::UserService;
-use crate::session::SessionStore;
 use crate::utils::shutdown_signal;
 
 mod args;
 mod ctx;
 mod routes;
 mod service;
-mod session;
 mod utils;
 
 #[tokio::main]
@@ -65,14 +64,10 @@ async fn main() -> anyhow::Result<()> {
   let listener = TcpListener::bind(args.listen_addr).await?;
   info!("listening at http://{}...", args.listen_addr);
 
-  let session_store = Arc::<SessionStore>::default();
   let user_service = Arc::new(UserService::new(db));
 
   let router = router()
-    .with_state(Context {
-      session_store,
-      user_service,
-    })
+    .with_state(Context { user_service })
     .layer(TraceLayer::new_for_http())
     .into_make_service();
 
