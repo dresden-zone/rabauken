@@ -94,7 +94,7 @@
           rm -rf ./lib/entity/src/models/*
           cp -r $BUILD_DIR/out/* ./lib/entity/src/models/
           chmod -R 644 ./lib/entity/src/models/*
-          ${pkgs.git}/bin/git apply ${./lib/entity/patch/fixed_time_crate_serde_configuration.patch} --verbose
+          #${pkgs.git}/bin/git apply ${./lib/entity/patch/fixed_time_crate_serde_configuration.patch} --verbose
           ${pkgs.cargo}/bin/cargo fmt
         '';
 
