@@ -39,15 +39,16 @@ impl<C: SessionContext + Sync> FromRequestParts<C> for Session {
       StatusCode::UNAUTHORIZED
     })?;
 
-    let user_id: Option<Uuid> = ctx
-      .session_store()
-      .await
-      .lookup(session_id)
-      .await
-      .map_err(|err| {
-        error!("cannot lookup session id {}", err);
-        StatusCode::UNAUTHORIZED
-      })?;
+    let user_id: Option<Uuid> =
+      ctx
+        .session_store()
+        .await
+        .lookup(session_id)
+        .await
+        .map_err(|err| {
+          error!("cannot lookup session id {}", err);
+          StatusCode::UNAUTHORIZED
+        })?;
 
     let user_id = user_id.ok_or(StatusCode::UNAUTHORIZED)?;
 

@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod invite;
 pub mod password;
 pub mod record;
 pub mod record_a;

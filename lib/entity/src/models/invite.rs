@@ -4,31 +4,16 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "zone")]
+#[sea_orm(table_name = "invite")]
 pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub id: Uuid,
+  pub expiry: TimeDateTimeWithTimeZone,
   pub created: TimeDateTimeWithTimeZone,
-  pub updated: TimeDateTimeWithTimeZone,
-  pub name: String,
-  pub verified: bool,
-  pub ttl: i64,
-  pub refresh: i32,
-  pub retry: i32,
-  pub expire: i32,
-  pub minimum: i64,
+  pub email: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {
-  #[sea_orm(has_many = "super::record::Entity")]
-  Record,
-}
-
-impl Related<super::record::Entity> for Entity {
-  fn to() -> RelationDef {
-    Relation::Record.def()
-  }
-}
+pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
