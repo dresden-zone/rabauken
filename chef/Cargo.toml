@@ -4,17 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { version = "1.0.0-rc.2", default-features = false, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
-tokio = { version = "1.36", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
-axum = { version = "0.7", default-features = false, features = ["tokio", "http1", "json", "macros"] }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
-tracing = { version = "0.1", default-features = false, features = ["release_max_level_info"] }
-uuid = { version = "1.7", default-features = false, features = ["v4", "serde"] }
-serde = { version = "1.0", features = ["derive"] }
-sea-query = { version = "0.30", default-features = false }
-clap = { version = "4.4", features = ["derive", "env"] }
-time = { version = "0.3", default-features = false }
-url = { version = "2.5", default-features = false }
+sea-orm = { workspace = true, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal"] }
+axum = { workspace = true, default-features = false, features = ["tokio", "http1", "json", "macros"] }
+tracing-subscriber = { workspace = true, default-features = false, features = ["fmt", "ansi"] }
+tracing = { workspace = true, default-features = false, features = ["release_max_level_info"] }
+uuid = { workspace = true, default-features = false, features = ["v4", "serde"] }
+serde = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive", "env"] }
+time = { workspace = true, default-features = false }
+url = { workspace = true, default-features = false }
 migration = { path = "../lib/migration" }
 entity = { path = "../lib/entity" }
-anyhow = "1.0"
+anyhow = { workspace = true }
