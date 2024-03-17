@@ -1,0 +1,13 @@
+[package]
+name = "session"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+redis = { workspace = true,features = ["tokio-comp", "uuid"] }
+async-trait = { workspace = true }
+axum-extra = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+uuid = { workspace = true }
