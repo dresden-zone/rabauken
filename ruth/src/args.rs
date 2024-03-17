@@ -7,7 +7,7 @@ use clap::Parser;
 pub(super) struct Args {
   #[arg(short, long, env = "RUTH_LISTEN_ADDR", default_value = "[::]:4321")]
   pub(super) listen_addr: SocketAddr,
-  #[arg(short = 'u', long, env = "RUTH_DB_USER", default_value = "ruth")]
+  #[arg(short = 'u', long, env = "RUTH_DB_USER", default_value = "dd_zone")]
   pub(super) db_user: String,
   #[arg(
     short = 'p',
@@ -28,7 +28,7 @@ pub(super) struct Args {
   pub(super) db_addr: IpAddr,
   #[arg(long, env = "RUTH_DB_PORT", default_value = "5432")]
   pub(super) db_port: u16,
-  #[arg(short = 'n', long, env = "RUTH_DB_NAME", default_value = "ruth")]
+  #[arg(short = 'n', long, env = "RUTH_DB_NAME", default_value = "dd_zone")]
   pub(super) db_name: String,
   #[arg(short = 'r', long, env = "RUTH_REDIS_ADDR", default_value = "::1")]
   pub(super) redis_addr: IpAddr,
