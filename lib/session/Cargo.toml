@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-redis = { workspace = true,features = ["tokio-comp", "uuid"] }
-async-trait = { workspace = true }
+redis = { workspace = true, features = ["uuid"] }
 axum-extra = { workspace = true }
+bb8-redis = { workspace = true }
 tracing = { workspace = true }
+anyhow = { workspace = true }
 tokio = { workspace = true }
 axum = { workspace = true }
 uuid = { workspace = true }

@@ -30,4 +30,8 @@ pub(super) struct Args {
   pub(super) db_port: u16,
   #[arg(short = 'n', long, env = "RUTH_DB_NAME", default_value = "ruth")]
   pub(super) db_name: String,
+  #[arg(short = 'r', long, env = "RUTH_REDIS_ADDR", default_value = "::1")]
+  pub(super) redis_addr: IpAddr,
+  #[arg(long, env = "RUTH_REDIS_PORT", default_value = "6379")]
+  pub(super) redis_port: u16,
 }

@@ -21,3 +21,4 @@ url = { workspace = true, default-features = false }
 migration = { path = "../lib/migration" }
 session = { path = "../lib/session" }
 entity = { path = "../lib/entity" }
+bb8-redis = { workspace = true }

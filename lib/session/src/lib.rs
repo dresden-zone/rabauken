@@ -4,17 +4,19 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum_extra::extract::CookieJar;
-use redis::AsyncCommands;
+use bb8_redis::bb8::Pool;
+use bb8_redis::redis::AsyncCommands;
+use bb8_redis::RedisConnectionManager;
 use tracing::error;
 use uuid::Uuid;
 
-#[async_trait::async_trait]
 pub trait SessionContext {
-  async fn session_store(&self) -> SessionStore;
+  fn session_store(&self) -> &SessionStore;
 }
 
+#[derive(Clone)]
 pub struct SessionStore {
-  client: redis::Client,
+  redis: Pool<RedisConnectionManager>,
 }
 
 pub struct Session {
@@ -22,12 +24,26 @@ pub struct Session {
 }
 
 impl SessionStore {
-  async fn push(user_id: Uuid) -> Session {}
+  pub fn new(redis: Pool<RedisConnectionManager>) -> Self {
+    Self { redis }
+  }
 
-  async fn lookup(session_id: Uuid) -> Option<Session> {}
+  pub async fn push(&self, user_id: Uuid) -> anyhow::Result<Uuid> {
+    let mut conn = self.redis.get().await?;
+    let session_id = Uuid::new_v4();
+    conn.set(session_id, user_id).await?;
+
+    Ok(session_id)
+  }
+
+  pub async fn lookup(&self, session_id: Uuid) -> anyhow::Result<Option<Uuid>> {
+    let mut conn = self.redis.get().await?;
+    let user_id = conn.get::<_, Option<Uuid>>(session_id).await?;
+    Ok(user_id)
+  }
 }
 
-#[async_trait::async_trait]
+#[axum::async_trait]
 impl<C: SessionContext + Sync> FromRequestParts<C> for Session {
   type Rejection = StatusCode;
 
@@ -39,16 +55,14 @@ impl<C: SessionContext + Sync> FromRequestParts<C> for Session {
       StatusCode::UNAUTHORIZED
     })?;
 
-    let user_id: Option<Uuid> =
-      ctx
-        .session_store()
-        .await
-        .lookup(session_id)
-        .await
-        .map_err(|err| {
-          error!("cannot lookup session id {}", err);
-          StatusCode::UNAUTHORIZED
-        })?;
+    let user_id = ctx
+      .session_store()
+      .lookup(session_id)
+      .await
+      .map_err(|err| {
+        error!("cannot lookup session id {}", err);
+        StatusCode::UNAUTHORIZED
+      })?;
 
     let user_id = user_id.ok_or(StatusCode::UNAUTHORIZED)?;
 

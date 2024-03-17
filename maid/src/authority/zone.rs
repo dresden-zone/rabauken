@@ -1,6 +1,7 @@
 use std::fmt::Write;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use hickory_server::authority::{
   AnyRecords, AuthLookup, Authority, LookupError, LookupOptions, LookupRecords, LookupResult,
   MessageRequest, UpdateResult, ZoneType,
@@ -32,7 +33,7 @@ impl ZoneAuthority {
   }
 }
 
-#[async_trait::async_trait]
+#[async_trait]
 impl Authority for ZoneAuthority {
   type Lookup = AuthLookup;
 

@@ -1,3 +1,5 @@
+use bb8_redis::bb8::Pool;
+use bb8_redis::RedisConnectionManager;
 use std::future::IntoFuture;
 use std::sync::Arc;
 
@@ -11,6 +13,7 @@ use tracing_subscriber::FmtSubscriber;
 use url::Url;
 
 use migration::{Migrator, MigratorTrait};
+use session::SessionStore;
 
 use crate::args::Args;
 use crate::ctx::Context;
@@ -64,10 +67,19 @@ async fn main() -> anyhow::Result<()> {
   let listener = TcpListener::bind(args.listen_addr).await?;
   info!("listening at http://{}...", args.listen_addr);
 
+  let redis_pool = {
+    let manager = RedisConnectionManager::new((args.redis_addr.to_string(), args.redis_port))?;
+    Pool::builder().build(manager).await?
+  };
+
   let user_service = Arc::new(UserService::new(db));
+  let session_store = SessionStore::new(redis_pool);
 
   let router = router()
-    .with_state(Context { user_service })
+    .with_state(Context {
+      user_service,
+      session_store,
+    })
     .layer(TraceLayer::new_for_http())
     .into_make_service();
 
