@@ -18,6 +18,7 @@ pub struct Model {
   pub email: String,
   pub email_verified: bool,
   pub display_name: String,
+  pub roles: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

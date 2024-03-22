@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 redis = { workspace = true, features = ["uuid"] }
+redis-derive = { workspace = true }
 axum-extra = { workspace = true }
 bb8-redis = { workspace = true }
 tracing = { workspace = true }

@@ -109,10 +109,14 @@ pub(super) async fn password_login(
   match user {
     None => Err(StatusCode::UNAUTHORIZED),
     Some(user) => {
-      let session_id = ctx.session_store.push(user.id).await.map_err(|err| {
-        error!("Unable persist session: {}", err);
-        StatusCode::INTERNAL_SERVER_ERROR
-      })?;
+      let session_id = ctx
+        .session_store
+        .push(user.id, user.roles)
+        .await
+        .map_err(|err| {
+          error!("Unable to persist session: {:?}", err);
+          StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
       let cookie = Cookie::build(("session_id", session_id.to_string()))
         .domain("localhost")

@@ -12,6 +12,7 @@ members = [
 [workspace.dependencies]
 tracing-subscriber = { version = "0.3", default-features = false }
 sea-orm = { version = "1.0.0-rc.2", default-features = false }
+redis-derive = { version = "0.1", default-features = false }
 async-trait = { version = "0.1", default-features = false }
 tower-http = { version = "0.5", default-features = false }
 axum-extra = { version = "0.9", default-features = false }

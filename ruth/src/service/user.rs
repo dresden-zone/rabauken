@@ -68,6 +68,7 @@ impl UserService {
       email: ActiveValue::Set(email),
       email_verified: ActiveValue::Set(email_verified),
       display_name: ActiveValue::Set(display_name),
+      roles: ActiveValue::Set(invite.roles),
     };
 
     let user = user.insert(&self.db).await?;

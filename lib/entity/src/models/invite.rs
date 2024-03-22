@@ -13,6 +13,7 @@ pub struct Model {
   #[serde(with = "time::serde::iso8601")]
   pub expire: TimeDateTimeWithTimeZone,
   pub email: String,
+  pub roles: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

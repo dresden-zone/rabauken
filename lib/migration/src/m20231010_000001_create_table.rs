@@ -72,7 +72,8 @@ impl MigrationTrait for Migration {
         name           varchar(255) not null unique,
         email          varchar(255) not null unique,
         email_verified bool         not null,
-        display_name   varchar(255) not null
+        display_name   varchar(255) not null,
+        roles          int2         not null
       );
 
       create table "password"(
@@ -86,7 +87,8 @@ impl MigrationTrait for Migration {
         id      uuid          not null primary key default gen_random_uuid(),
         created timestamptz   not null             default now(),
         expire  timestamptz   not null,
-        email   varchar(255)  not null
+        email   varchar(255)  not null,
+        roles   int2          not null
       );
 
       -- TODO:
