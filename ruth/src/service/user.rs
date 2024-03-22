@@ -1,12 +1,14 @@
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::{Error, SaltString};
 use argon2::{Argon2, PasswordHash, PasswordHasher};
-use entity::prelude::{Password, User};
-use entity::{password, user};
 use sea_orm::{
   ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter,
 };
+use time::OffsetDateTime;
 use uuid::Uuid;
+
+use entity::prelude::{Invite, Password, User};
+use entity::{invite, password, user};
 
 pub(crate) struct UserService {
   db: DatabaseConnection,
@@ -26,13 +28,35 @@ impl UserService {
     Ok(user)
   }
 
+  pub(crate) async fn check_invite(&self, id: Uuid) -> anyhow::Result<Option<invite::Model>> {
+    let invite = Invite::find_by_id(id).one(&self.db).await?;
+
+    match invite {
+      None => Ok(None),
+      Some(invite) if invite.expire < OffsetDateTime::now_utc() => Ok(None),
+      Some(invite) => Ok(Some(invite)),
+    }
+  }
+
   pub(crate) async fn register(
     &self,
+    invite_id: Uuid,
     name: String,
-    email: String,
+    email: Option<String>,
     display_name: String,
     password: &[u8],
   ) -> anyhow::Result<user::Model> {
+    let invite = Invite::find_by_id(invite_id)
+      .one(&self.db)
+      .await?
+      // TODO: handle error 410 gone?
+      .unwrap();
+
+    let (email, email_verified) = match email {
+      None => (invite.email, true),
+      Some(email) => (email, false),
+    };
+
     let salt = SaltString::generate(&mut OsRng);
     let hash = self.password_verifier.hash_password(password, &salt)?;
 
@@ -42,6 +66,7 @@ impl UserService {
       updated: ActiveValue::NotSet,
       name: ActiveValue::Set(name),
       email: ActiveValue::Set(email),
+      email_verified: ActiveValue::Set(email_verified),
       display_name: ActiveValue::Set(display_name),
     };
 
@@ -55,6 +80,8 @@ impl UserService {
     };
 
     password.insert(&self.db).await?;
+
+    // TODO: send email verify email
 
     Ok(user)
   }
@@ -70,6 +97,8 @@ impl UserService {
       .select_also(User)
       .one(&self.db)
       .await?;
+
+    // TODO: check for verified email
 
     match result {
       Some((password::Model { hash, .. }, Some(user))) => {

@@ -1,20 +1,22 @@
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use axum_extra::extract::CookieJar;
-use entity::user;
 use serde::{Deserialize, Serialize};
-use session::Session;
 use time::Duration;
 use tracing::error;
+use uuid::Uuid;
+
+use entity::{invite, user};
+use session::Session;
 
 use crate::ctx::Context;
 
 #[derive(Deserialize)]
 pub(super) struct RegisterRequest {
   name: String,
-  email: String,
+  email: Option<String>,
   display_name: String,
   password: String,
 }
@@ -50,13 +52,32 @@ pub(super) async fn me(
     })
 }
 
+pub(super) async fn check_invite(
+  State(ctx): State<Context>,
+  Path(invite_id): Path<Uuid>,
+) -> Result<Json<invite::Model>, StatusCode> {
+  let invite = ctx
+    .user_service
+    .check_invite(invite_id)
+    .await
+    .map_err(|err| {
+      error!("Unable to fetch invite: {}", err);
+      StatusCode::INTERNAL_SERVER_ERROR
+    })?
+    .ok_or(StatusCode::GONE)?;
+
+  Ok(Json(invite))
+}
+
 pub(super) async fn register(
   State(ctx): State<Context>,
+  Path(invite_id): Path<Uuid>,
   Json(req): Json<RegisterRequest>,
 ) -> Result<Json<user::Model>, StatusCode> {
   let user = ctx
     .user_service
     .register(
+      invite_id,
       req.name,
       req.email,
       req.display_name,

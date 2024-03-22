@@ -66,25 +66,26 @@ impl MigrationTrait for Migration {
       );
 
       create table "user"(
-        id           uuid         not null primary key default gen_random_uuid(),
-        created      timestamptz  not null             default now(),
-        updated      timestamptz  not null             default now(),
-        name         varchar(255) not null unique,
-        email        varchar(255) not null unique,
-        display_name varchar(255) not null
+        id             uuid         not null primary key default gen_random_uuid(),
+        created        timestamptz  not null             default now(),
+        updated        timestamptz  not null             default now(),
+        name           varchar(255) not null unique,
+        email          varchar(255) not null unique,
+        email_verified bool         not null,
+        display_name   varchar(255) not null
       );
 
       create table "password"(
-        id      uuid         not null primary key references "user" (id),
+        id      uuid         not null primary key references "user"(id),
         created timestamptz  not null default now(),
         updated timestamptz  not null default now(),
         hash    varchar(255) not null
       );
 
       create table invite(
-        id      uuid          not null primary key,
-        expiry  timestamptz   not null,
-        created timestamptz   not null,
+        id      uuid          not null primary key default gen_random_uuid(),
+        created timestamptz   not null             default now(),
+        expire  timestamptz   not null,
         email   varchar(255)  not null
       );
 
@@ -112,6 +113,7 @@ impl MigrationTrait for Migration {
         DROP TABLE record_txt;
         DROP TABLE "user";
         DROP TABLE "password";
+        DROP TABLE "invite";
       "#,
       )
       .await?;

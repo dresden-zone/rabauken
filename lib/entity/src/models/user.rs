@@ -16,6 +16,7 @@ pub struct Model {
   pub name: String,
   #[sea_orm(unique)]
   pub email: String,
+  pub email_verified: bool,
   pub display_name: String,
 }
 
