@@ -47,6 +47,7 @@ impl UserService {
     password: &[u8],
   ) -> anyhow::Result<user::Model> {
     let invite = Invite::find_by_id(invite_id)
+      .filter(invite::Column::Expire.gte(OffsetDateTime::now_utc()))
       .one(&self.db)
       .await?
       // TODO: handle error 410 gone?
@@ -81,6 +82,11 @@ impl UserService {
     };
 
     password.insert(&self.db).await?;
+
+    let result = Invite::delete_by_id(invite_id).exec(&self.db).await?;
+
+    // TODO: do we want asserts?
+    assert_eq!(result.rows_affected, 1);
 
     // TODO: send email verify email
 
