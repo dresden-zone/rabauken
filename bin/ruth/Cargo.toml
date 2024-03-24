@@ -17,9 +17,9 @@ uuid = { workspace = true, features = ["v4", "serde"] }
 tower-http = { workspace = true, features = ["trace"] }
 serde = { workspace = true, features = ["derive"] }
 anyhow = { workspace = true, features = ["std"] }
-migration = { path = "../lib/migration" }
-session = { path = "../lib/session" }
-entity = { path = "../lib/entity" }
-utils = { path = "../lib/utils" }
+migration = { path = "../../lib/migration" }
+session = { path = "../../lib/session" }
+entity = { path = "../../lib/entity" }
+utils = { path = "../../lib/utils" }
 bb8-redis = { workspace = true }
 url = { workspace = true }

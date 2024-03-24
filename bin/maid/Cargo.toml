@@ -8,11 +8,11 @@ sea-orm = { workspace = true, default-features = false, features = ["sqlx-postgr
 tokio = { workspace = true, default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
 tracing-subscriber = { workspace = true, default-features = false, features = ["fmt", "ansi"] }
 tracing = { workspace = true, default-features = false, features = ["release_max_level_info"] }
-entity = { path = "../lib/entity", features = ["hickory-proto"] }
+entity = { path = "../../lib/entity", features = ["hickory-proto"] }
 hickory-server = { workspace = true, default-features = false }
 clap = { workspace = true, features = ["derive", "env"] }
 url = { workspace = true, default-features = false }
-migration = { path = "../lib/migration" }
+migration = { path = "../../lib/migration" }
 async-trait = { workspace = true }
 anyhow = { workspace = true }
 time = { workspace = true }

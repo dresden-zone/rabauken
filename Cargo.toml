@@ -1,11 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
-  "chef",
-  "maid",
+  "bin/chef",
+  "bin/maid",
   "lib/entity",
   "lib/migration",
-  "ruth",
+  "bin/ruth",
   "lib/session",
   "lib/utils"
 ]

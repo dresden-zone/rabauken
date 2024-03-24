@@ -75,7 +75,7 @@ impl MigrationTrait for Migration {
 
       create table record_mx(
           id         uuid         not null primary key references record(id),
-          preference int2         not null,
+          preference int4         not null,
           exchange   varchar(255) not null
       );
 

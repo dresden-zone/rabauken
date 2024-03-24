@@ -17,8 +17,8 @@ tower-http = { workspace = true, default-features = false, features = ["trace"] 
 anyhow = { workspace = true, default-features = false, features = ["std"] }
 serde = { workspace = true,features = ["derive"] }
 url = { workspace = true, default-features = false }
-migration = { path = "../lib/migration" }
-session = { path = "../lib/session" }
-entity = { path = "../lib/entity" }
-utils = { path = "../lib/utils" }
+migration = { path = "../../lib/migration" }
+session = { path = "../../lib/session" }
+entity = { path = "../../lib/entity" }
+utils = { path = "../../lib/utils" }
 bb8-redis = { workspace = true }
