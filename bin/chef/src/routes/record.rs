@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use entity::prelude::Record;
 use entity::record;
-use session::Session;
+use session::{Session, ROLE_DNS};
 
 use crate::ctx::Context;
 use crate::service::RecordRequestTrait;
