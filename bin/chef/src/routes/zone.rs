@@ -6,7 +6,7 @@ use tracing::error;
 use uuid::Uuid;
 
 use entity::zone;
-use session::{ROLE_DNS, Session};
+use session::{Session, ROLE_DNS};
 
 use crate::ctx::Context;
 
