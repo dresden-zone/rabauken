@@ -49,8 +49,9 @@ impl SessionStore {
 
   pub async fn lookup(&self, session_id: Uuid) -> anyhow::Result<Option<(Uuid, i16)>> {
     let mut conn = self.redis.get().await?;
-    let inner = conn.hgetall::<_, Option<Inner>>(session_id).await?;
-    Ok(inner.map(|session| (session.user_id, session.roles)))
+    let inner = conn.hgetall::<_, Inner>(session_id).await?;
+    // TODO: handle not present
+    Ok(Some((inner.user_id, inner.roles)))
   }
 }
 
