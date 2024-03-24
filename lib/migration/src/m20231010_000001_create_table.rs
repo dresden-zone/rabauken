@@ -59,13 +59,13 @@ impl MigrationTrait for Migration {
       );
 
       create table record_a(
-          id      uuid         not null primary key references record(id),
-          address varchar(15)  not null
+          id   uuid         not null primary key references record(id),
+          addr varchar(15)  not null
       );
 
       create table record_aaaa(
-          id      uuid         not null primary key references record(id),
-          address varchar(41)  not null
+          id   uuid         not null primary key references record(id),
+          addr varchar(41)  not null
       );
 
       create table record_cname(

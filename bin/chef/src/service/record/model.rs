@@ -45,7 +45,7 @@ impl RecordRequestTrait<record_a::ActiveModel> for RecordARequest {
   fn into_active_model(self, id: ActiveValue<Uuid>) -> record_a::ActiveModel {
     record_a::ActiveModel {
       id,
-      address: ActiveValue::Set(self.addr.to_string()),
+      addr: ActiveValue::Set(self.addr.to_string()),
     }
   }
 }
@@ -54,7 +54,7 @@ impl RecordRequestTrait<record_aaaa::ActiveModel> for RecordAaaaRequest {
   fn into_active_model(self, id: ActiveValue<Uuid>) -> record_aaaa::ActiveModel {
     record_aaaa::ActiveModel {
       id,
-      address: ActiveValue::Set(self.addr.to_string()),
+      addr: ActiveValue::Set(self.addr.to_string()),
     }
   }
 }
