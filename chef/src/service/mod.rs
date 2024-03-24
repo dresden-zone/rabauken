@@ -1,4 +1,5 @@
-pub mod generic_database;
-pub mod generic_record_service;
-pub mod merge;
-pub mod model;
+pub(crate) use record::*;
+pub(crate) use zone::*;
+
+mod record;
+mod zone;

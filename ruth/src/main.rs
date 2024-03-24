@@ -1,8 +1,8 @@
-use bb8_redis::bb8::Pool;
-use bb8_redis::RedisConnectionManager;
 use std::future::IntoFuture;
 use std::sync::Arc;
 
+use bb8_redis::bb8::Pool;
+use bb8_redis::RedisConnectionManager;
 use clap::Parser;
 use sea_orm::Database;
 use tokio::net::TcpListener;
@@ -14,25 +14,24 @@ use url::Url;
 
 use migration::{Migrator, MigratorTrait};
 use session::SessionStore;
+use utils::shutdown_signal;
 
 use crate::args::Args;
 use crate::ctx::Context;
 use crate::routes::router;
 use crate::service::UserService;
-use crate::utils::shutdown_signal;
 
 mod args;
 mod ctx;
 mod routes;
 mod service;
-mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
   let args = Args::parse();
 
   let subscriber = FmtSubscriber::builder()
-    .with_max_level(Level::DEBUG)
+    .with_max_level(Level::INFO)
     .compact()
     .finish();
 

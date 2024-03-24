@@ -4,21 +4,22 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { workspace = true, default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "with-uuid", "with-time"] }
-clap = { workspace = true,default-features = false, features = ["std", "color", "help", "usage", "error-context", "suggestions", "derive", "env"] }
-tokio = { workspace = true, default-features = false, features = ["macros", "rt-multi-thread", "net", "signal", "fs"] }
-argon2 = { workspace = true, default-features = false, features = ["password-hash", "std"] }
-tracing = { workspace = true, default-features = false, features = ["release_max_level_debug"] }
-tracing-subscriber = {workspace = true, default-features = false, features = ["fmt", "ansi"] }
-axum = { workspace = true,default-features = false, features = ["tokio", "http1", "json"] }
-time = {workspace = true, default-features = false, features = ["serde", "formatting"] }
-axum-extra = { workspace = true, default-features = false, features = ["cookie"] }
-uuid = { workspace = true,default-features = false, features = ["v4", "serde"] }
-tower-http = { workspace = true, default-features = false, features = ["trace"] }
-anyhow = { workspace = true, default-features = false, features = ["std"] }
-serde = { workspace = true,features = ["derive"] }
-url = { workspace = true, default-features = false }
+clap = { workspace = true, features = ["std", "color", "help", "usage", "error-context", "suggestions", "derive", "env"] }
+sea-orm = { workspace = true, features = ["sqlx-postgres", "runtime-tokio-rustls"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "fs"] }
+tracing = { workspace = true, features = ["release_max_level_info"] }
+tracing-subscriber = { workspace = true, features = ["fmt", "ansi"] }
+axum = { workspace = true, features = ["tokio", "http1", "json"] }
+argon2 = { workspace = true, features = ["password-hash", "std"] }
+time = { workspace = true, features = ["serde", "formatting"] }
+axum-extra = { workspace = true, features = ["cookie"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
+tower-http = { workspace = true, features = ["trace"] }
+serde = { workspace = true, features = ["derive"] }
+anyhow = { workspace = true, features = ["std"] }
 migration = { path = "../lib/migration" }
 session = { path = "../lib/session" }
 entity = { path = "../lib/entity" }
+utils = { path = "../lib/utils" }
 bb8-redis = { workspace = true }
+url = { workspace = true }

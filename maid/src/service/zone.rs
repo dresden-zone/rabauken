@@ -83,15 +83,15 @@ impl ZoneService {
     set.insert(
       Record::from_rdata(
         name,
-        zone.ttl as u32,
+        300,
         RData::SOA(rdata::SOA::new(
           Name::from_ascii("ns.dns.dresden.zone.")?,
           Name::from_ascii("dns.dresden.zone")?,
           serial,
-          zone.refresh,
-          zone.retry,
-          zone.expire,
-          zone.minimum as u32,
+          7200,
+          3600,
+          1209600,
+          60,
         )),
       ),
       0,
@@ -108,16 +108,26 @@ impl ZoneService {
     // records.push(soa);
 
     records.append(
-      &mut query_all_records::<record_a::Entity, _>(&self.db, zone_id, origin, RecordType::A)
-        .await?,
+      &mut query_all_records::<record_a::Entity, _>(
+        self.db.as_ref(),
+        zone_id,
+        origin,
+        RecordType::A,
+      )
+      .await?,
     );
     records.append(
-      &mut query_all_records::<record_aaaa::Entity, _>(&self.db, zone_id, origin, RecordType::AAAA)
-        .await?,
+      &mut query_all_records::<record_aaaa::Entity, _>(
+        self.db.as_ref(),
+        zone_id,
+        origin,
+        RecordType::AAAA,
+      )
+      .await?,
     );
     records.append(
       &mut query_all_records::<record_cname::Entity, _>(
-        &self.db,
+        self.db.as_ref(),
         zone_id,
         origin,
         RecordType::CNAME,
@@ -126,16 +136,31 @@ impl ZoneService {
     );
 
     records.append(
-      &mut query_all_records::<record_mx::Entity, _>(&self.db, zone_id, origin, RecordType::MX)
-        .await?,
+      &mut query_all_records::<record_mx::Entity, _>(
+        self.db.as_ref(),
+        zone_id,
+        origin,
+        RecordType::MX,
+      )
+      .await?,
     );
     records.append(
-      &mut query_all_records::<record_ns::Entity, _>(&self.db, zone_id, origin, RecordType::NS)
-        .await?,
+      &mut query_all_records::<record_ns::Entity, _>(
+        self.db.as_ref(),
+        zone_id,
+        origin,
+        RecordType::NS,
+      )
+      .await?,
     );
     records.append(
-      &mut query_all_records::<record_txt::Entity, _>(&self.db, zone_id, origin, RecordType::TXT)
-        .await?,
+      &mut query_all_records::<record_txt::Entity, _>(
+        self.db.as_ref(),
+        zone_id,
+        origin,
+        RecordType::TXT,
+      )
+      .await?,
     );
 
     Ok(records)
@@ -154,24 +179,52 @@ impl ZoneService {
     let set = match record_type {
       RecordType::SOA => self.soa(zone_id, Some(&name)).await?,
       record_type @ RecordType::A => {
-        query_records::<record_a::Entity, _>(&self.db, zone_id, origin, &name, record_type, host)
-          .await?
+        query_records::<record_a::Entity, _>(
+          self.db.as_ref(),
+          zone_id,
+          origin,
+          &name,
+          record_type,
+          host,
+        )
+        .await?
       }
       record_type @ RecordType::AAAA => {
-        query_records::<record_aaaa::Entity, _>(&self.db, zone_id, origin, &name, record_type, host)
-          .await?
+        query_records::<record_aaaa::Entity, _>(
+          self.db.as_ref(),
+          zone_id,
+          origin,
+          &name,
+          record_type,
+          host,
+        )
+        .await?
       }
       record_type @ RecordType::MX => {
-        query_records::<record_mx::Entity, _>(&self.db, zone_id, origin, &name, record_type, host)
-          .await?
+        query_records::<record_mx::Entity, _>(
+          self.db.as_ref(),
+          zone_id,
+          origin,
+          &name,
+          record_type,
+          host,
+        )
+        .await?
       }
       record_type @ RecordType::NS => {
-        query_records::<record_ns::Entity, _>(&self.db, zone_id, origin, &name, record_type, host)
-          .await?
+        query_records::<record_ns::Entity, _>(
+          self.db.as_ref(),
+          zone_id,
+          origin,
+          &name,
+          record_type,
+          host,
+        )
+        .await?
       }
       record_type @ RecordType::CNAME => {
         query_records::<record_cname::Entity, _>(
-          &self.db,
+          self.db.as_ref(),
           zone_id,
           origin,
           &name,
@@ -181,15 +234,22 @@ impl ZoneService {
         .await?
       }
       record_type @ RecordType::TXT => {
-        query_records::<record_txt::Entity, _>(&self.db, zone_id, origin, &name, record_type, host)
-          .await?
+        query_records::<record_txt::Entity, _>(
+          self.db.as_ref(),
+          zone_id,
+          origin,
+          &name,
+          record_type,
+          host,
+        )
+        .await?
       }
       _ => todo!(),
     };
 
     Ok(if set.is_empty() {
       let records = query_records::<record_cname::Entity, _>(
-        &self.db,
+        self.db.as_ref(),
         zone_id,
         origin,
         &name,

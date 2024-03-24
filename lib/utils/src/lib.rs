@@ -2,7 +2,7 @@ use tokio::select;
 use tokio::signal::ctrl_c;
 use tracing::info;
 
-pub(super) async fn shutdown_signal() {
+pub async fn shutdown_signal() {
   let ctrl_c = async { ctrl_c().await.expect("failed to install Ctrl+C handler") };
 
   #[cfg(unix)]

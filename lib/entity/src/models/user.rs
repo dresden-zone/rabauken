@@ -25,11 +25,19 @@ pub struct Model {
 pub enum Relation {
   #[sea_orm(has_many = "super::password::Entity")]
   Password,
+  #[sea_orm(has_many = "super::zone::Entity")]
+  Zone,
 }
 
 impl Related<super::password::Entity> for Entity {
   fn to() -> RelationDef {
     Relation::Password.def()
+  }
+}
+
+impl Related<super::zone::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::Zone.def()
   }
 }
 

@@ -4,16 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sea-orm = { workspace = true, features = ["runtime-tokio-rustls", "sqlx-postgres", "with-uuid"] }
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal"] }
-axum = { workspace = true, default-features = false, features = ["tokio", "http1", "json", "macros"] }
-tracing-subscriber = { workspace = true, default-features = false, features = ["fmt", "ansi"] }
+clap = { workspace = true,default-features = false, features = ["std", "color", "help", "usage", "error-context", "suggestions", "derive", "env"] }
+tokio = { workspace = true, default-features = false, features = ["macros", "rt-multi-thread", "net", "signal", "fs"] }
+sea-orm = { workspace = true, default-features = false, features = ["sqlx-postgres", "runtime-tokio-rustls"] }
 tracing = { workspace = true, default-features = false, features = ["release_max_level_info"] }
-uuid = { workspace = true, default-features = false, features = ["v4", "serde"] }
-serde = { workspace = true, features = ["derive"] }
-clap = { workspace = true, features = ["derive", "env"] }
-time = { workspace = true, default-features = false }
+tracing-subscriber = {workspace = true, default-features = false, features = ["fmt", "ansi"] }
+axum = { workspace = true,default-features = false, features = ["tokio", "http1", "json"] }
+time = {workspace = true, default-features = false, features = ["serde", "formatting"] }
+axum-extra = { workspace = true, default-features = false, features = ["cookie"] }
+uuid = { workspace = true,default-features = false, features = ["v4", "serde"] }
+tower-http = { workspace = true, default-features = false, features = ["trace"] }
+anyhow = { workspace = true, default-features = false, features = ["std"] }
+serde = { workspace = true,features = ["derive"] }
 url = { workspace = true, default-features = false }
 migration = { path = "../lib/migration" }
+session = { path = "../lib/session" }
 entity = { path = "../lib/entity" }
-anyhow = { workspace = true }
+utils = { path = "../lib/utils" }
+bb8-redis = { workspace = true }
