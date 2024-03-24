@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use sea_orm::{
-  ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Related,
-};
+use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, Related};
 use uuid::Uuid;
 
 use entity::prelude::{Record, Zone};
@@ -53,7 +51,7 @@ impl RecordService {
     record::Entity: Related<E>,
     <<E as EntityTrait>::PrimaryKey as sea_orm::PrimaryKeyTrait>::ValueType: From<Uuid>,
   {
-    let zones =Record::find_by_id(record_id)
+    let zones = Record::find_by_id(record_id)
       .inner_join(Zone)
       .inner_join(E::default())
       .filter(zone::Column::Owner.eq(user_id))
@@ -66,24 +64,36 @@ impl RecordService {
   }
 
   pub(crate) async fn create(&self, user_id: Uuid, name: String) -> anyhow::Result<zone::Model> {
-    let zone = zone::ActiveModel {
-      id: ActiveValue::NotSet,
-      created: ActiveValue::NotSet,
-      updated: ActiveValue::NotSet,
-      name: ActiveValue::Set(name),
-      owner: ActiveValue::Set(user_id),
-      verified: ActiveValue::NotSet,
-      serial: ActiveValue::NotSet,
-    };
-
-    let zone = zone.insert(self.db.as_ref()).await?;
-
-    Ok(zone)
+    todo!()
   }
 
-  pub(crate) async fn delete(&self, user_id: Uuid, zone_id: Uuid) -> anyhow::Result<bool> {
-    let result = Zone::delete_by_id(zone_id)
+  pub(crate) async fn delete<E: EntityTrait>(
+    &self,
+    user_id: Uuid,
+    record_id: Uuid,
+  ) -> anyhow::Result<bool>
+  where
+    <<E as EntityTrait>::PrimaryKey as sea_orm::PrimaryKeyTrait>::ValueType: From<Uuid>,
+  {
+    // validate access
+    let access = Record::find_by_id(record_id)
       .filter(zone::Column::Owner.eq(user_id))
+      .count(self.db.as_ref())
+      .await?
+      == 1;
+
+    if !access {
+      return Ok(false);
+    }
+
+    // delete
+    let result = E::delete_by_id(record_id).exec(self.db.as_ref()).await?;
+
+    if result.rows_affected == 0 {
+      return Ok(false);
+    }
+
+    let result = Record::delete_by_id(record_id)
       .exec(self.db.as_ref())
       .await?;
 

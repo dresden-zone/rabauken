@@ -11,7 +11,6 @@ use crate::routes::record::{
 };
 use crate::routes::zone::{create_zone, delete_zone, get_zone, list_zones};
 
-mod model;
 mod record;
 mod zone;
 
@@ -62,38 +61,38 @@ pub(super) fn router() -> Router<Context> {
         .post(create_record::<RecordTxt, _, _, CreateTxtRecord>),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/a/:record_id",
+      "/api/dns/v1/record/a/:record_id",
       get(get_record::<RecordA>)
         .delete(delete_record::<RecordA>).
         put(modify_record::<RecordA, record_a::Model, record_a::ActiveModel, CreateARecord>),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/aaaa/:record_id",
+      "/api/dns/v1/record/aaaa/:record_id",
       get(get_record::<RecordAaaa>)
         .delete(delete_record::<RecordAaaa>)
         .put(modify_record::<RecordAaaa, record_aaaa::Model, record_aaaa::ActiveModel, CreateAAAARecord>),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/cname/:record_id",
+      "/api/dns/v1/record/cname/:record_id",
       get(get_record::<RecordCname>)
         .delete(delete_record::<RecordCname>)
         .put(modify_record::<RecordCname, record_cname::Model, record_cname::ActiveModel, CreateCnameRecord>,
         ),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/mx/:record_id",
+      "/api/dns/v1/record/mx/:record_id",
       get(get_record::<RecordMx>)
         .delete(delete_record::<RecordMx>)
         .put(modify_record::<RecordMx, record_mx::Model, record_mx::ActiveModel, CreateMxRecord>),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/ns/:record_id",
+      "/api/dns/v1/record/ns/:record_id",
       get(get_record::<RecordNs>)
         .delete(delete_record::<RecordNs>).
         put(modify_record::<RecordNs, record_ns::Model, record_ns::ActiveModel, CreateNsRecord>),
     )
     .route(
-      "/api/dns/v1/zone/:zone_id/record/txt/:record_id",
+      "/api/dns/v1/record/txt/:record_id",
       get(get_record::<RecordTxt>)
         .delete(delete_record::<RecordTxt>).
         put(modify_record::<RecordTxt, record_txt::Model, record_txt::ActiveModel, CreateTxtRecord>),
