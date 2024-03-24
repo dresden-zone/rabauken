@@ -12,59 +12,6 @@ impl MigrationTrait for Migration {
 
     db.execute_unprepared(
       r#"
-      create table zone(
-          id       uuid primary key,
-          created  timestamptz  not null,
-          updated  timestamptz  not null,
-          name     varchar(255) not null,
-          verified boolean      not null,
-          ttl      bigint       not null,
-          refresh  integer      not null,
-          retry    integer      not null,
-          expire   integer      not null,
-          minimum  bigint       not null
-      );
-
-      create table record(
-          id      uuid primary key,
-          created timestamptz  not null,
-          updated timestamptz  not null,
-          name    varchar(255) not null,
-          zone_id uuid         not null references zone (id),
-          ttl     bigint       not null
-      );
-
-      create table record_a(
-          id      uuid primary key references record(id),
-          address varchar(15)  not null
-      );
-
-      create table record_aaaa(
-          id      uuid primary key references record(id),
-          address varchar(41)  not null
-      );
-
-      create table record_cname(
-          id      uuid primary key references record(id) unique,
-          target  varchar(255) not null
-      );
-
-      create table record_mx(
-          id         uuid primary key references record(id),
-          preference smallint     not null,
-          exchange   varchar(255) not null
-      );
-
-      create table record_ns(
-          id       uuid primary key references record(id),
-          target   varchar(255) not null
-      );
-
-      create table record_txt(
-          id       uuid primary key references record(id),
-          content  text         not null
-      );
-
       create table "user"(
         id             uuid         not null primary key default gen_random_uuid(),
         created        timestamptz  not null             default now(),
@@ -77,18 +24,69 @@ impl MigrationTrait for Migration {
       );
 
       create table "password"(
-        id      uuid         not null primary key references "user"(id),
+        id      uuid         not null primary key references "user" (id),
         created timestamptz  not null default now(),
         updated timestamptz  not null default now(),
         hash    varchar(255) not null
       );
 
       create table invite(
-        id      uuid          not null primary key default gen_random_uuid(),
-        created timestamptz   not null             default now(),
-        expire  timestamptz   not null,
-        email   varchar(255)  not null,
-        roles   int2          not null
+        id      uuid         not null primary key default gen_random_uuid(),
+        created timestamptz  not null             default now(),
+        expire  timestamptz  not null,
+        email   varchar(255) not null,
+        roles   int2         not null
+      );
+
+      create table zone(
+        id       uuid         not null primary key default gen_random_uuid(),
+        created  timestamptz  not null             default now(),
+        updated  timestamptz  not null             default now(),
+        name     varchar(255) not null,
+        owner    uuid         not null references "user" (id),
+        verified boolean      not null             default false,
+        serial   int8         not null             default 0,
+        unique (name, owner)
+      );
+
+      create table record(
+        id      uuid         not null primary key default gen_random_uuid(),
+        created timestamptz  not null             default now(),
+        updated timestamptz  not null             default now(),
+        name    varchar(255) not null,
+        zone_id uuid         not null references zone (id),
+        ttl     int4
+      );
+
+      create table record_a(
+          id      uuid         not null primary key references record(id),
+          address varchar(15)  not null
+      );
+
+      create table record_aaaa(
+          id      uuid         not null primary key references record(id),
+          address varchar(41)  not null
+      );
+
+      create table record_cname(
+          id      uuid         not null primary key references record(id),
+          target  varchar(255) not null
+      );
+
+      create table record_mx(
+          id         uuid         not null primary key references record(id),
+          preference int4         not null,
+          exchange   varchar(255) not null
+      );
+
+      create table record_ns(
+          id       uuid         not null primary key references record(id),
+          target   varchar(255) not null
+      );
+
+      create table record_txt(
+          id       uuid not null primary key references record(id),
+          content  text not null
       );
 
       -- TODO:
