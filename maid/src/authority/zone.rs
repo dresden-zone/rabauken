@@ -83,7 +83,7 @@ impl Authority for ZoneAuthority {
     };
 
     // Collect the records from each rr_set
-    let (result, additionals): (LookupResult<LookupRecords>, Option<LookupRecords>) =
+    let (result, additional): (LookupResult<LookupRecords>, Option<LookupRecords>) =
       match query_type {
         RecordType::AXFR | RecordType::ANY => {
           let result = AnyRecords::new(
@@ -116,7 +116,7 @@ impl Authority for ZoneAuthority {
             .unwrap();
 
           let additional = match answer.as_ref().and_then(|a| maybe_next_name(a, query_type)) {
-            Some((search_name, search_type)) => {
+            Some(search_name) => {
               if !self.origin.zone_of(&search_name) {
                 None
               } else {
@@ -128,8 +128,6 @@ impl Authority for ZoneAuthority {
                     name,
                     query_type,
                     search_name,
-                    search_type,
-                    lookup_options,
                   )
                   .await
               }
@@ -177,7 +175,7 @@ impl Authority for ZoneAuthority {
         }
       }
 
-      AuthLookup::answers(answers, additionals)
+      AuthLookup::answers(answers, additional)
     })
   }
 
@@ -227,42 +225,35 @@ impl Authority for ZoneAuthority {
 }
 
 /// Gets the next search name, and returns the RecordType that it originated from
-fn maybe_next_name(
-  record_set: &RecordSet,
-  query_type: RecordType,
-) -> Option<(LowerName, RecordType)> {
+fn maybe_next_name(record_set: &RecordSet, query_type: RecordType) -> Option<LowerName> {
   match (record_set.record_type(), query_type) {
-    (t @ RecordType::NS, RecordType::NS) => record_set
+    (RecordType::NS, RecordType::NS) => record_set
       .records_without_rrsigs()
       .next()
       .and_then(Record::data)
       .and_then(RData::as_ns)
-      .map(|ns| LowerName::from(&ns.0))
-      .map(|name| (name, t)),
+      .map(|ns| LowerName::from(&ns.0)),
     // CNAME will continue to additional processing for any query type
-    (t @ RecordType::CNAME, _) => record_set
+    (RecordType::CNAME, _) => record_set
       .records_without_rrsigs()
       .next()
       .and_then(Record::data)
       .and_then(RData::as_cname)
-      .map(|cname| LowerName::from(&cname.0))
-      .map(|name| (name, t)),
-    (t @ RecordType::MX, RecordType::MX) => record_set
+      .map(|cname| LowerName::from(&cname.0)),
+    (RecordType::MX, RecordType::MX) => record_set
       .records_without_rrsigs()
       .next()
       .and_then(Record::data)
       .and_then(RData::as_mx)
       .map(|mx| mx.exchange().clone())
-      .map(LowerName::from)
-      .map(|name| (name, t)),
-    (t @ RecordType::SRV, RecordType::SRV) => record_set
+      .map(LowerName::from),
+    (RecordType::SRV, RecordType::SRV) => record_set
       .records_without_rrsigs()
       .next()
       .and_then(Record::data)
       .and_then(RData::as_srv)
       .map(|srv| srv.target().clone())
-      .map(LowerName::from)
-      .map(|name| (name, t)),
+      .map(LowerName::from),
     // other additional collectors can be added here can be added here
     _ => None,
   }

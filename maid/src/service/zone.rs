@@ -6,7 +6,6 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use sea_orm::prelude::{Expr, Uuid};
 
-use hickory_server::authority::LookupOptions;
 use hickory_server::proto::rr::domain::Label;
 use hickory_server::proto::rr::{rdata, LowerName, Name, RData, Record, RecordSet, RecordType};
 use sea_orm::{
@@ -274,8 +273,6 @@ impl ZoneService {
     original_name: &LowerName,
     original_query_type: RecordType,
     next_name: LowerName,
-    _search_type: RecordType,
-    _lookup_options: LookupOptions,
   ) -> Option<Vec<Arc<RecordSet>>> {
     let mut additionals: Vec<Arc<RecordSet>> = vec![];
 
@@ -466,7 +463,11 @@ where
     let model = model.unwrap();
 
     set.insert(
-      Record::from_rdata(name.clone(), record.ttl as u32, model.into_record(origin)?),
+      Record::from_rdata(
+        name.clone(),
+        record.ttl.unwrap_or(300) as u32,
+        model.into_record(origin)?,
+      ),
       0,
     );
   }
@@ -511,7 +512,11 @@ where
       Name::from_ascii(record.name)?.append_domain(origin)?
     };
 
-    let record = Record::from_rdata(name.clone(), record.ttl as u32, model.into_record(origin)?);
+    let record = Record::from_rdata(
+      name.clone(),
+      record.ttl.unwrap_or(300) as u32,
+      model.into_record(origin)?,
+    );
 
     match set.entry(name.clone()) {
       Entry::Vacant(vac) => {

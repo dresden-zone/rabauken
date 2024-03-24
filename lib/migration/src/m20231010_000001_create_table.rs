@@ -55,7 +55,7 @@ impl MigrationTrait for Migration {
         updated timestamptz  not null             default now(),
         name    varchar(255) not null,
         zone_id uuid         not null references zone (id),
-        ttl     int4         not null default 0
+        ttl     int4
       );
 
       create table record_a(
