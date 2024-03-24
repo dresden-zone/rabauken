@@ -6,7 +6,7 @@ use tracing::error;
 use uuid::Uuid;
 
 use entity::zone;
-use session::Session;
+use session::{ROLE_DNS, Session};
 
 use crate::ctx::Context;
 
@@ -17,7 +17,7 @@ pub(crate) struct CreateZoneRequest {
 
 pub(crate) async fn list_zones(
   State(ctx): State<Context>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<Json<Vec<zone::Model>>, StatusCode> {
   let zones = ctx
     .zone_service
@@ -34,7 +34,7 @@ pub(crate) async fn list_zones(
 pub(crate) async fn get_zone(
   State(ctx): State<Context>,
   Path(zone_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<Json<zone::Model>, StatusCode> {
   let zone = ctx
     .zone_service
@@ -52,7 +52,7 @@ pub(crate) async fn get_zone(
 
 pub(crate) async fn create_zone(
   State(ctx): State<Context>,
-  session: Session,
+  session: Session<ROLE_DNS>,
   Json(req): Json<CreateZoneRequest>,
 ) -> Result<Json<zone::Model>, StatusCode> {
   let zone = ctx
@@ -70,7 +70,7 @@ pub(crate) async fn create_zone(
 pub(crate) async fn delete_zone(
   State(ctx): State<Context>,
   Path(zone_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<StatusCode, StatusCode> {
   let found = ctx
     .zone_service

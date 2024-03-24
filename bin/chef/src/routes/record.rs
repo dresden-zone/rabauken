@@ -41,7 +41,7 @@ pub(crate) struct RecordCommonReq {
 pub(crate) async fn list_records<E: EntityTrait>(
   State(ctx): State<Context>,
   Path(zone_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<Json<Vec<RecordResponse<E>>>, StatusCode>
 where
   Record: Related<E>,
@@ -64,7 +64,7 @@ where
 pub(crate) async fn get_record<E: EntityTrait>(
   State(ctx): State<Context>,
   Path(record_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<Json<RecordResponse<E>>, StatusCode>
 where
   Record: Related<E>,
@@ -90,7 +90,7 @@ pub(crate) async fn create_record<
 >(
   State(ctx): State<Context>,
   Path(zone_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
   Json(req): Json<RecordRequest<R>>,
 ) -> Result<Json<RecordResponse<<A as ActiveModelTrait>::Entity>>, StatusCode>
 where
@@ -121,7 +121,7 @@ pub(crate) async fn modify_record<
 >(
   State(ctx): State<Context>,
   Path(record_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
   Json(req): Json<RecordRequest<R>>,
 ) -> Result<Json<RecordResponse<<A as ActiveModelTrait>::Entity>>, StatusCode>
 where
@@ -150,7 +150,7 @@ where
 pub(crate) async fn delete_record<E: EntityTrait>(
   State(ctx): State<Context>,
   Path(record_id): Path<Uuid>,
-  session: Session,
+  session: Session<ROLE_DNS>,
 ) -> Result<StatusCode, StatusCode>
 where
   Record: Related<E>,
