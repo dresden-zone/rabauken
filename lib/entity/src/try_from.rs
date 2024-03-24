@@ -24,13 +24,13 @@ pub trait IntoRecord {
 
 impl IntoRecord for record_a::Model {
   fn into_record(self, _origin: &Name) -> Result<RData, EntityError> {
-    Ok(RData::A(rdata::A(self.address.parse()?)))
+    Ok(RData::A(rdata::A(self.addr.parse()?)))
   }
 }
 
 impl IntoRecord for record_aaaa::Model {
   fn into_record(self, _origin: &Name) -> Result<RData, EntityError> {
-    Ok(RData::AAAA(rdata::AAAA(self.address.parse()?)))
+    Ok(RData::AAAA(rdata::AAAA(self.addr.parse()?)))
   }
 }
 
