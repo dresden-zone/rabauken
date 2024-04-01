@@ -105,6 +105,8 @@ in
       };
     };
 
+    users.groups."${cfg.group}" = {};
+
     # user accounts for systemd units
     users.users."${cfg.user}" = {
       name = "${cfg.user}";
@@ -112,7 +114,7 @@ in
       isNormalUser = false;
       isSystemUser = true;
       group = cfg.group;
-      uid = 1501;
+      uid = 1601;
     };
   };
 }
