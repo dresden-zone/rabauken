@@ -22,25 +22,16 @@
         latest.rustc
       ];
 
-      migration-package = pkgs.callPackage ./pkgs/migration.nix {
-        buildPackage = (naersk.lib.${system}.override {
-          cargo = toolchain;
-          rustc = toolchain;
-        }).buildPackage;
+      migration-package = pkgs.callPackage ./derivation.nix {
+        cargoToml = ./lib/migration/Cargo.toml;
       };
 
-      chef = pkgs.callPackage ./pkgs/chef.nix {
-        buildPackage = (naersk.lib.${system}.override {
-          cargo = toolchain;
-          rustc = toolchain;
-        }).buildPackage;
+      chef = pkgs.callPackage ./derivation.nix {
+        cargoToml = ./bin/chef/Cargo.toml;
       };
 
-      maid = pkgs.callPackage ./pkgs/maid.nix {
-        buildPackage = (naersk.lib.${system}.override {
-          cargo = toolchain;
-          rustc = toolchain;
-        }).buildPackage;
+      maid = pkgs.callPackage ./derivation.nix {
+        cargoToml = ./bin/maid/Cargo.toml;
       };
     in
     {

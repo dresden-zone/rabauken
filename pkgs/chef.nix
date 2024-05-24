@@ -12,6 +12,6 @@ buildPackage {
 
   meta = {
     description = "";
-    homepage = "https://github.com/dresden-zone/dns";
+    homepage = "https://github.com/dresden-zone/rabauken";
   };
 }
